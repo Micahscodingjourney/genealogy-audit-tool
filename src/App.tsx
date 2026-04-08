@@ -30,37 +30,61 @@ Field definitions:
 Each array entry should be a concise, specific finding (1–2 sentences max). If a category has no issues, return an empty array.
 Return ONLY valid JSON — no markdown, no code fences, no preamble.`
 
-const PLACEHOLDER = `Example: "William H. Tanner, b. abt. 1847 in Virginia, appears in the 1880 census with wife [name illegible] and three children: Mary (12), James (9), and an infant not yet named. His father is listed elsewhere as John Tanner (1810–?), but no marriage record connects them. William's own marriage date is unknown. A death record from 1901 lists a 'W. Tanner' of similar age in the same county, though the cause and full name differ slightly."`
+const PLACEHOLDER = `Paste a census record, family history entry, or any historical genealogical text here…
 
-const categories: {
+Example: "William H. Tanner, b. abt. 1847 in Virginia, appears in the 1880 census with wife [name illegible] and three children: Mary (12), James (9), and an infant not yet named. His father is listed elsewhere as John Tanner (1810–?), but no marriage record connects them."`
+
+interface Category {
   key: keyof Omit<AuditResult, 'summary'>
   label: string
-  accent: string
-  icon: string
-}[] = [
+  description: string
+  borderColor: string
+  bgColor: string
+  badgeColor: string
+  textColor: string
+  dotColor: string
+}
+
+const categories: Category[] = [
   {
     key: 'missingNames',
     label: 'Missing or Ambiguous Names',
-    accent: 'border-amber-400 bg-amber-50',
-    icon: '👤',
+    description: 'Unnamed individuals or unresolvable identities',
+    borderColor: 'border-gold-400',
+    bgColor: 'bg-gold-50',
+    badgeColor: 'bg-gold-100 text-gold-700',
+    textColor: 'text-gold-800',
+    dotColor: 'bg-gold-400',
   },
   {
     key: 'dateGaps',
     label: 'Date Gaps & Uncertainties',
-    accent: 'border-sky-400 bg-sky-50',
-    icon: '📅',
+    description: 'Missing, approximate, or conflicting dates',
+    borderColor: 'border-olive-400',
+    bgColor: 'bg-olive-50',
+    badgeColor: 'bg-olive-100 text-olive-700',
+    textColor: 'text-olive-800',
+    dotColor: 'bg-olive-400',
   },
   {
     key: 'lineageGaps',
     label: 'Lineage Gaps',
-    accent: 'border-violet-400 bg-violet-50',
-    icon: '🌿',
+    description: 'Breaks or unverified links in the family line',
+    borderColor: 'border-olive-300',
+    bgColor: 'bg-olive-50/60',
+    badgeColor: 'bg-olive-100 text-olive-600',
+    textColor: 'text-olive-700',
+    dotColor: 'bg-olive-300',
   },
   {
     key: 'incompleteOrContradictory',
     label: 'Incomplete or Contradictory Records',
-    accent: 'border-rose-400 bg-rose-50',
-    icon: '⚠️',
+    description: 'Facts that conflict or cannot be reconciled',
+    borderColor: 'border-gold-600',
+    bgColor: 'bg-gold-50/70',
+    badgeColor: 'bg-gold-200 text-gold-800',
+    textColor: 'text-gold-900',
+    dotColor: 'bg-gold-500',
   },
 ]
 
@@ -79,7 +103,6 @@ export default function App() {
 
   async function handleAudit() {
     if (!inputText.trim()) return
-
     setIsLoading(true)
     setResult(null)
     setError(null)
@@ -109,7 +132,7 @@ export default function App() {
         )
       }
 
-      const data = await response.json() as {
+      const data = (await response.json()) as {
         content: { type: string; text: string }[]
       }
       const rawText = data.content.find((b) => b.type === 'text')?.text ?? ''
@@ -122,123 +145,190 @@ export default function App() {
     }
   }
 
-  const hasFindings =
-    result &&
-    categories.some((c) => result[c.key].length > 0)
+  const totalFindings = result
+    ? categories.reduce((sum, c) => sum + result[c.key].length, 0)
+    : 0
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Top accent bar */}
+      <div className="h-1 bg-gradient-to-r from-olive-600 via-gold-500 to-olive-400" />
+
       {/* Header */}
-      <header className="border-b border-stone-200 bg-white">
-        <div className="max-w-3xl mx-auto px-6 py-6">
-          <h1 className="text-2xl font-serif font-semibold text-stone-800 tracking-tight">
-            Genealogy Record Auditor
-          </h1>
-          <p className="mt-1 text-sm text-stone-500">
-            Paste a historical genealogical text to identify gaps, ambiguities, and inconsistencies.
-          </p>
+      <header className="bg-white border-b border-olive-100 shadow-sm">
+        <div className="max-w-3xl mx-auto px-6 py-7">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center gap-2.5 mb-1">
+                <LeafIcon />
+                <span className="text-xs font-semibold tracking-widest uppercase text-olive-500">
+                  Research Tool
+                </span>
+              </div>
+              <h1 className="font-serif text-3xl font-semibold text-olive-900 tracking-tight leading-tight">
+                Genealogy Record Auditor
+              </h1>
+              <p className="mt-2 text-sm text-olive-600 leading-relaxed max-w-lg">
+                Paste a historical genealogical text to surface gaps, ambiguities,
+                and inconsistencies using AI-assisted analysis.
+              </p>
+            </div>
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-10 space-y-8">
-        {/* Input section */}
-        <section className="space-y-3">
-          <label
-            htmlFor="record-input"
-            className="block text-sm font-medium text-stone-700"
-          >
-            Historical Record
-          </label>
-          <textarea
-            id="record-input"
-            rows={10}
-            className="w-full rounded-lg border border-stone-300 bg-white px-4 py-3 text-sm text-stone-800 placeholder-stone-400 shadow-sm resize-y focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent transition"
-            placeholder={PLACEHOLDER}
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            disabled={isLoading}
-          />
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleAudit}
-              disabled={isLoading || !inputText.trim() || !apiKey}
-              className="inline-flex items-center gap-2 rounded-lg bg-stone-800 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-stone-700 active:bg-stone-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-10 space-y-7">
+
+        {/* Input card */}
+        <div className="bg-white rounded-2xl shadow-card border border-olive-100 overflow-hidden">
+          <div className="px-6 pt-6 pb-2">
+            <label
+              htmlFor="record-input"
+              className="block text-xs font-semibold uppercase tracking-widest text-olive-500 mb-3"
             >
-              {isLoading ? (
-                <>
-                  <Spinner />
-                  Auditing…
-                </>
-              ) : (
-                'Audit Record'
-              )}
-            </button>
-            {result && (
+              Historical Record
+            </label>
+            <textarea
+              id="record-input"
+              rows={9}
+              className="w-full rounded-xl border border-olive-200 bg-parchment px-4 py-3.5 text-sm text-olive-900 placeholder-olive-300 resize-y focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent transition scrollbar-thin leading-relaxed"
+              placeholder={PLACEHOLDER}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="px-6 py-4 flex items-center justify-between border-t border-olive-50 bg-olive-50/40">
+            <div className="flex items-center gap-3">
               <button
-                onClick={() => { setResult(null); setError(null) }}
-                className="text-sm text-stone-500 hover:text-stone-700 underline underline-offset-2 transition-colors"
+                onClick={handleAudit}
+                disabled={isLoading || !inputText.trim() || !apiKey}
+                className="inline-flex items-center gap-2 rounded-lg bg-olive-700 hover:bg-olive-600 active:bg-olive-800 text-white text-sm font-semibold px-5 py-2.5 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
               >
-                Clear results
+                {isLoading ? (
+                  <>
+                    <Spinner />
+                    Auditing…
+                  </>
+                ) : (
+                  <>
+                    <AuditIcon />
+                    Audit Record
+                  </>
+                )}
               </button>
+
+              {result && (
+                <button
+                  onClick={() => { setResult(null); setError(null) }}
+                  className="text-sm text-olive-500 hover:text-olive-700 underline underline-offset-2 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            {inputText.trim() && (
+              <span className="text-xs text-olive-400">
+                {inputText.trim().split(/\s+/).length} words
+              </span>
             )}
           </div>
+
           {!apiKey && (
-            <p className="text-xs text-rose-600">
-              No API key found. Add <code className="bg-rose-50 px-1 rounded">VITE_ANTHROPIC_API_KEY</code> to your <code className="bg-rose-50 px-1 rounded">.env</code> file and restart the dev server.
-            </p>
+            <div className="px-6 py-3 bg-gold-50 border-t border-gold-100 text-xs text-gold-800">
+              No API key detected — add{' '}
+              <code className="bg-gold-100 px-1 py-0.5 rounded font-mono">
+                VITE_ANTHROPIC_API_KEY
+              </code>{' '}
+              to your <code className="bg-gold-100 px-1 py-0.5 rounded font-mono">.env</code> file
+              and restart the dev server.
+            </div>
           )}
-        </section>
+        </div>
 
         {/* Error */}
         {error && (
-          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            <span className="font-medium">Error:</span> {error}
+          <div className="rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 flex gap-3 items-start">
+            <span className="text-red-400 mt-0.5 shrink-0">⚠</span>
+            <div>
+              <p className="font-semibold mb-0.5">Analysis failed</p>
+              <p className="text-red-600">{error}</p>
+            </div>
           </div>
         )}
 
         {/* Results */}
         {result && (
-          <section className="space-y-6">
-            {/* Summary */}
-            <div className="rounded-lg border border-stone-200 bg-white px-5 py-4 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-1">
-                Summary
-              </p>
-              <p className="text-sm text-stone-700 leading-relaxed">{result.summary}</p>
+          <section className="space-y-5 animate-[fadeIn_0.3s_ease]">
+
+            {/* Summary bar */}
+            <div className="bg-white rounded-2xl shadow-card border border-olive-100 px-6 py-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold uppercase tracking-widest text-olive-400">
+                  Summary
+                </p>
+                <span className="text-xs font-semibold rounded-full bg-olive-100 text-olive-700 px-3 py-1">
+                  {totalFindings} finding{totalFindings !== 1 ? 's' : ''}
+                </span>
+              </div>
+              <p className="text-sm text-olive-800 leading-relaxed">{result.summary}</p>
+
+              {/* Category count pills */}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {categories.map((c) => {
+                  const count = result[c.key].length
+                  if (count === 0) return null
+                  return (
+                    <span
+                      key={c.key}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${c.badgeColor}`}
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${c.dotColor}`} />
+                      {c.label.split(' ')[0]} · {count}
+                    </span>
+                  )
+                })}
+              </div>
             </div>
 
             {/* Category cards */}
-            {!hasFindings ? (
-              <div className="rounded-lg border border-stone-200 bg-white px-5 py-4 text-sm text-stone-500 shadow-sm">
-                No significant issues detected in this record.
+            {totalFindings === 0 ? (
+              <div className="bg-white rounded-2xl shadow-card border border-olive-100 px-6 py-8 text-center">
+                <p className="text-olive-400 text-sm">No significant issues detected in this record.</p>
               </div>
             ) : (
-              <div className="grid gap-4">
-                {categories.map(({ key, label, accent, icon }) => {
-                  const items = result[key]
+              <div className="space-y-4">
+                {categories.map((cat) => {
+                  const items = result[cat.key]
                   if (items.length === 0) return null
                   return (
                     <div
-                      key={key}
-                      className={`rounded-lg border-l-4 bg-white shadow-sm ${accent}`}
+                      key={cat.key}
+                      className={`bg-white rounded-2xl shadow-card border border-olive-100 border-l-4 ${cat.borderColor} overflow-hidden`}
                     >
-                      <div className="px-5 py-4">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span aria-hidden>{icon}</span>
-                          <h2 className="text-sm font-semibold text-stone-700">{label}</h2>
-                          <span className="ml-auto rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-500">
+                      <div className={`px-6 py-4 ${cat.bgColor} border-b border-olive-100/60`}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h2 className={`text-sm font-semibold ${cat.textColor}`}>
+                              {cat.label}
+                            </h2>
+                            <p className="text-xs text-olive-500 mt-0.5">{cat.description}</p>
+                          </div>
+                          <span className={`text-xs font-bold rounded-full px-2.5 py-1 ${cat.badgeColor}`}>
                             {items.length}
                           </span>
                         </div>
-                        <ul className="space-y-2">
-                          {items.map((item, i) => (
-                            <li key={i} className="flex gap-2 text-sm text-stone-600">
-                              <span className="mt-0.5 shrink-0 text-stone-300">—</span>
-                              <span className="leading-relaxed">{item}</span>
-                            </li>
-                          ))}
-                        </ul>
                       </div>
+                      <ul className="divide-y divide-olive-50">
+                        {items.map((item, i) => (
+                          <li key={i} className="px-6 py-3.5 flex gap-3 items-start">
+                            <span className={`mt-1.5 shrink-0 h-1.5 w-1.5 rounded-full ${cat.dotColor}`} />
+                            <span className="text-sm text-olive-700 leading-relaxed">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   )
                 })}
@@ -248,9 +338,15 @@ export default function App() {
         )}
       </main>
 
-      <footer className="border-t border-stone-200 mt-auto">
-        <div className="max-w-3xl mx-auto px-6 py-4 text-xs text-stone-400">
-          Powered by Claude · Analysis is advisory — verify all findings against primary sources.
+      {/* Footer */}
+      <footer className="border-t border-olive-100 bg-white mt-auto">
+        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+          <span className="text-xs text-olive-400">
+            Powered by Claude · Analysis is advisory
+          </span>
+          <span className="text-xs text-olive-300">
+            Verify all findings against primary sources
+          </span>
         </div>
       </footer>
     </div>
@@ -259,25 +355,26 @@ export default function App() {
 
 function Spinner() {
   return (
-    <svg
-      className="h-4 w-4 animate-spin"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-      />
+    <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  )
+}
+
+function LeafIcon() {
+  return (
+    <svg className="h-4 w-4 text-olive-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.5c0 0-7-3.5-7-10A7 7 0 0119 8.5c0 6.5-7 10-7 10z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.5V22" />
+    </svg>
+  )
+}
+
+function AuditIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
     </svg>
   )
 }
