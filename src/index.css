@@ -6,7 +6,7 @@
 
 @layer base {
   body {
-    @apply bg-parchment text-olive-900 antialiased;
+    @apply bg-canvas text-navy-900 antialiased;
     font-family: 'Inter', system-ui, sans-serif;
   }
 }
@@ -14,6 +14,6 @@
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: theme('colors.olive.200') transparent;
+    scrollbar-color: theme('colors.navy.200') transparent;
   }
 }
