@@ -17,7 +17,17 @@ interface AuditResult {
 
 const SYSTEM_PROMPT = `You are an expert genealogical record analyst with deep knowledge of historical records, census documents, vital records, and family histories — including African American genealogy, Freedmen's Bureau records, and plantation records.
 
-Analyze the given genealogical text and return ONLY a JSON object with exactly these fields:
+The user will provide two things:
+1. RESEARCHER CONTEXT — who they are, their known relatives, what they are trying to find, and any names or locations they already know. Use this to make the research roadmap highly personal and specific to their situation.
+2. HISTORICAL RECORD — the primary source text to analyze.
+
+If researcher context is provided, the researchSteps must:
+- Reference the researcher's own name and known relatives by name where relevant
+- Suggest searches that start from their known living relatives and work backward
+- Prioritize record types most likely to bridge the gap between the known living family and the historical record
+- Name specific counties, states, or cities from the context when suggesting where to search
+
+Analyze the historical record and return ONLY a JSON object with exactly these fields:
 
 {
   "missingNames": [...],
@@ -36,12 +46,12 @@ Field definitions:
 - lineageGaps: Missing generational links, unverified parent-child relationships, or breaks in the documented lineage.
 - incompleteOrContradictory: Facts that conflict with other facts, incomplete entries, or internal contradictions.
 - summary: 1–2 sentence overall assessment of the record's completeness and reliability.
-- researchSteps: Up to 6 specific, actionable next steps a researcher should take to resolve the gaps found. Each step must have:
-    - action: exactly what to do (be specific — name the record type, time period, and location)
-    - resource: the best place to find it (e.g. "FamilySearch.org", "Ancestry.com", "NARA Archives", "Freedmen's Bureau Records on FamilySearch", "Monticello Getting Word Project", "state vital records office", etc.)
-    - priority: "high" if it directly resolves a named person or date, "medium" for corroborating evidence, "low" for contextual background
+- researchSteps: Up to 6 specific, actionable next steps to resolve the gaps found. Each step:
+    - action: exactly what to do — name the record type, time period, location, and any relevant personal names from the researcher's context
+    - resource: best place to find it (FamilySearch.org, Ancestry.com, NARA, Freedmen's Bureau Records on FamilySearch, Monticello Getting Word Project, state vital records office, etc.)
+    - priority: "high" if it directly resolves a named person or date; "medium" for corroborating evidence; "low" for contextual background
 
-Order researchSteps from highest to lowest priority. Be specific and actionable — a researcher should be able to act on each step immediately.
+Order steps from highest to lowest priority. Be specific enough that the researcher can act on each step immediately.
 Return ONLY valid JSON — no markdown, no code fences, no preamble.`
 
 const SAMPLE_RECORD = `Fossett Family — Albemarle County, Virginia (compiled from multiple sources)
@@ -58,6 +68,8 @@ Children documented in Monticello Farm Book (partial):
 Peter Fossett appears in Cincinnati city directories 1850s–1870s as a caterer. Marriage record: Peter m. [given name not recorded] Vance, Cincinnati, abt. 1840. Children of Peter: at least four, names and birth years unconfirmed.
 
 No death records located for Joseph or Edith Fossett in Virginia or Ohio. Burial site unknown.`
+
+const SAMPLE_CONTEXT = `My name is Micah Fossett. My father is Damirez Fossett. I believe we are descendants of the Fossett family of Monticello, Albemarle County, Virginia — specifically Joseph and Edith Hern Fossett, who were enslaved there in the early 1800s. I am trying to trace the line from Damirez back through the generations to confirm this connection and fill in the missing links between our family today and the historical record.`
 
 interface Category {
   key: keyof Omit<AuditResult, 'summary' | 'researchSteps'>
@@ -116,18 +128,18 @@ const categories: Category[] = [
 const steps = [
   {
     number: '1',
-    heading: 'Paste your record',
-    body: 'Census entries, church registers, family Bibles, vital records, plantation records, or any narrative family history text.',
+    heading: 'Describe your connection',
+    body: 'In the gold field, write who you are, your known relatives, and what you\'re trying to find. The more specific, the more targeted the roadmap.',
   },
   {
     number: '2',
-    heading: 'Click Audit Record',
-    body: 'Claude analyzes the text and flags gaps, ambiguities, and inconsistencies across four structured categories.',
+    heading: 'Paste the historical record',
+    body: 'Add the primary source text — census entry, church register, family narrative, plantation record, etc.',
   },
   {
     number: '3',
-    heading: 'Follow the roadmap',
-    body: 'A prioritized list of specific next research steps is generated automatically — telling you exactly where to look.',
+    heading: 'Get a personal roadmap',
+    body: 'Claude audits the record and generates next steps specific to your name, family, and the gaps in the document.',
   },
 ]
 
@@ -140,16 +152,16 @@ const dos = [
 ]
 
 const donts = [
-  'Living individuals\' personal data',
+  'Living individuals\' private data',
   'Documents with Social Security numbers',
   'Medical or financial records',
   'Private correspondence not your own',
 ]
 
 const priorityStyles = {
-  high:   { badge: 'bg-navy-700 text-white',         label: 'High' },
-  medium: { badge: 'bg-gold-100 text-gold-800',       label: 'Medium' },
-  low:    { badge: 'bg-navy-100 text-navy-600',        label: 'Low' },
+  high:   { badge: 'bg-navy-700 text-white',    label: 'High' },
+  medium: { badge: 'bg-gold-100 text-gold-800', label: 'Medium' },
+  low:    { badge: 'bg-navy-100 text-navy-600', label: 'Low' },
 }
 
 function extractJson(raw: string): string {
@@ -157,7 +169,15 @@ function extractJson(raw: string): string {
   return match ? match[0] : raw
 }
 
+function buildUserMessage(context: string, record: string): string {
+  if (context.trim()) {
+    return `[RESEARCHER CONTEXT]\n${context.trim()}\n\n[HISTORICAL RECORD TO ANALYZE]\n${record.trim()}`
+  }
+  return record.trim()
+}
+
 export default function App() {
+  const [researcherContext, setResearcherContext] = useState('')
   const [inputText, setInputText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<AuditResult | null>(null)
@@ -184,7 +204,7 @@ export default function App() {
           model: 'claude-sonnet-4-20250514',
           max_tokens: 2048,
           system: SYSTEM_PROMPT,
-          messages: [{ role: 'user', content: inputText.trim() }],
+          messages: [{ role: 'user', content: buildUserMessage(researcherContext, inputText) }],
         }),
       })
 
@@ -215,10 +235,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top accent bar */}
       <div className="h-1 bg-gradient-to-r from-navy-800 via-gold-400 to-navy-600" />
 
-      {/* Header */}
       <header className="bg-white border-b border-navy-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-6 py-7">
           <div className="flex items-center gap-2.5 mb-1">
@@ -232,20 +250,17 @@ export default function App() {
           </h1>
           <p className="mt-1.5 text-sm text-navy-500 max-w-xl leading-relaxed">
             AI-assisted analysis of historical genealogical documents — surfaces gaps,
-            ambiguities, and inconsistencies, then charts a path forward.
+            ambiguities, and inconsistencies, then charts a personalized path forward.
           </p>
         </div>
       </header>
 
       <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-10 space-y-8">
 
-        {/* ── Input row: guide left, textarea right ── */}
         <div className="grid grid-cols-1 lg:grid-cols-[288px_1fr] gap-6 items-start">
 
-          {/* Left: Guide panel */}
+          {/* Left guide panel */}
           <div className="space-y-4">
-
-            {/* Steps */}
             <div className="bg-white rounded-2xl border border-navy-100 shadow-card p-5">
               <p className="text-xs font-bold uppercase tracking-widest text-navy-400 mb-4">
                 How it works
@@ -265,11 +280,8 @@ export default function App() {
               </ol>
             </div>
 
-            {/* Do's */}
             <div className="bg-white rounded-2xl border border-navy-100 shadow-card p-5">
-              <p className="text-xs font-bold uppercase tracking-widest text-navy-400 mb-3">
-                Works well with
-              </p>
+              <p className="text-xs font-bold uppercase tracking-widest text-navy-400 mb-3">Works well with</p>
               <ul className="space-y-2">
                 {dos.map((d) => (
                   <li key={d} className="flex items-start gap-2 text-xs text-navy-700">
@@ -280,11 +292,8 @@ export default function App() {
               </ul>
             </div>
 
-            {/* Don'ts */}
             <div className="bg-white rounded-2xl border border-gold-200 shadow-card p-5">
-              <p className="text-xs font-bold uppercase tracking-widest text-gold-600 mb-3">
-                Avoid pasting
-              </p>
+              <p className="text-xs font-bold uppercase tracking-widest text-gold-600 mb-3">Avoid pasting</p>
               <ul className="space-y-2">
                 {donts.map((d) => (
                   <li key={d} className="flex items-start gap-2 text-xs text-navy-600">
@@ -298,9 +307,8 @@ export default function App() {
               </p>
             </div>
 
-            {/* Sample */}
             <button
-              onClick={() => setInputText(SAMPLE_RECORD)}
+              onClick={() => { setInputText(SAMPLE_RECORD); setResearcherContext(SAMPLE_CONTEXT) }}
               className="w-full rounded-xl border border-navy-200 bg-navy-50 hover:bg-navy-100 text-navy-700 text-xs font-semibold px-4 py-2.5 transition-colors flex items-center justify-center gap-2"
             >
               <ScrollIcon />
@@ -308,58 +316,103 @@ export default function App() {
             </button>
           </div>
 
-          {/* Right: Textarea */}
-          <div className="bg-white rounded-2xl shadow-card border border-navy-100 overflow-hidden">
-            <div className="px-6 pt-6 pb-2">
-              <label
-                htmlFor="record-input"
-                className="block text-xs font-semibold uppercase tracking-widest text-navy-400 mb-3"
-              >
-                Historical Record
-              </label>
-              <textarea
-                id="record-input"
-                rows={14}
-                className="w-full rounded-xl border border-navy-200 bg-canvas px-4 py-3.5 text-sm text-navy-900 placeholder-navy-300 resize-y focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent transition scrollbar-thin leading-relaxed"
-                placeholder={`Paste a census record, family Bible entry, vital record, or any historical genealogical text here…\n\nOr click "Load a real historical record" on the left to try a documented example.`}
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
+          {/* Right: inputs */}
+          <div className="space-y-4">
 
-            <div className="px-6 py-4 flex items-center justify-between border-t border-navy-50 bg-navy-50/40">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleAudit}
-                  disabled={isLoading || !inputText.trim() || !apiKey}
-                  className="inline-flex items-center gap-2 rounded-lg bg-navy-700 hover:bg-navy-600 active:bg-navy-800 text-white text-sm font-semibold px-5 py-2.5 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
-                >
-                  {isLoading ? <><Spinner />Auditing…</> : <><AuditIcon />Audit Record</>}
-                </button>
-                {result && (
-                  <button
-                    onClick={() => { setResult(null); setError(null) }}
-                    className="text-sm text-navy-400 hover:text-navy-700 underline underline-offset-2 transition-colors"
-                  >
-                    Clear
-                  </button>
+            {/* Researcher context — gold-accented, clearly distinct */}
+            <div className="bg-white rounded-2xl shadow-card border border-gold-300 overflow-hidden">
+              <div className="px-5 py-3.5 bg-gold-50 border-b border-gold-200 flex items-start gap-3">
+                <PersonIcon />
+                <div>
+                  <p className="text-sm font-semibold text-gold-900">
+                    Your Connection to this Record
+                  </p>
+                  <p className="text-xs text-gold-700 mt-0.5 leading-relaxed">
+                    Tell us who you are and what you already know — your name, known relatives, and what you're trying to find.
+                    The roadmap will be tailored specifically to your family.
+                  </p>
+                </div>
+              </div>
+              <div className="px-5 py-4">
+                <textarea
+                  rows={4}
+                  className="w-full rounded-xl border border-gold-200 bg-gold-50/40 px-4 py-3 text-sm text-navy-900 placeholder-gold-400 resize-none focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent transition leading-relaxed"
+                  placeholder={`Example: "My name is Micah Fossett. My father is Damirez Fossett. I believe we descend from Joseph and Edith Fossett of Monticello, Albemarle County, Virginia. I am trying to trace the line from Damirez back through the generations and find what connects us to this historical record."`}
+                  value={researcherContext}
+                  onChange={(e) => setResearcherContext(e.target.value)}
+                  disabled={isLoading}
+                />
+                {!researcherContext.trim() && (
+                  <p className="mt-2 text-xs text-gold-600 flex items-center gap-1.5">
+                    <span>★</span>
+                    Optional but strongly recommended — without this, the roadmap will be generic rather than personal.
+                  </p>
+                )}
+                {researcherContext.trim() && (
+                  <p className="mt-2 text-xs text-gold-700 flex items-center gap-1.5">
+                    <span>✓</span>
+                    Context provided — the research roadmap will be tailored to your family.
+                  </p>
                 )}
               </div>
-              {inputText.trim() && (
-                <span className="text-xs text-navy-400">
-                  {inputText.trim().split(/\s+/).length} words
-                </span>
-              )}
             </div>
 
-            {!apiKey && (
-              <div className="px-6 py-3 bg-gold-50 border-t border-gold-100 text-xs text-gold-800">
-                No API key — add{' '}
-                <code className="bg-gold-100 px-1 py-0.5 rounded font-mono">VITE_ANTHROPIC_API_KEY</code>{' '}
-                to your <code className="bg-gold-100 px-1 py-0.5 rounded font-mono">.env</code> and restart.
+            {/* Historical record textarea */}
+            <div className="bg-white rounded-2xl shadow-card border border-navy-100 overflow-hidden">
+              <div className="px-6 pt-5 pb-2">
+                <label
+                  htmlFor="record-input"
+                  className="block text-xs font-semibold uppercase tracking-widest text-navy-400 mb-1"
+                >
+                  Historical Record
+                </label>
+                <p className="text-xs text-navy-400 mb-3">
+                  Paste the primary source text you want audited — census entry, church register, family narrative, plantation record, etc.
+                </p>
+                <textarea
+                  id="record-input"
+                  rows={12}
+                  className="w-full rounded-xl border border-navy-200 bg-canvas px-4 py-3.5 text-sm text-navy-900 placeholder-navy-300 resize-y focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent transition scrollbar-thin leading-relaxed"
+                  placeholder={`Paste a census record, family Bible entry, vital record, or any historical genealogical text here…\n\nOr click "Load a real historical record" on the left to try a documented example.`}
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  disabled={isLoading}
+                />
               </div>
-            )}
+
+              <div className="px-6 py-4 flex items-center justify-between border-t border-navy-50 bg-navy-50/40">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleAudit}
+                    disabled={isLoading || !inputText.trim() || !apiKey}
+                    className="inline-flex items-center gap-2 rounded-lg bg-navy-700 hover:bg-navy-600 active:bg-navy-800 text-white text-sm font-semibold px-5 py-2.5 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
+                  >
+                    {isLoading ? <><Spinner />Auditing…</> : <><AuditIcon />Audit Record</>}
+                  </button>
+                  {result && (
+                    <button
+                      onClick={() => { setResult(null); setError(null) }}
+                      className="text-sm text-navy-400 hover:text-navy-700 underline underline-offset-2 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                {inputText.trim() && (
+                  <span className="text-xs text-navy-400">
+                    {inputText.trim().split(/\s+/).length} words
+                  </span>
+                )}
+              </div>
+
+              {!apiKey && (
+                <div className="px-6 py-3 bg-gold-50 border-t border-gold-100 text-xs text-gold-800">
+                  No API key — add{' '}
+                  <code className="bg-gold-100 px-1 py-0.5 rounded font-mono">VITE_ANTHROPIC_API_KEY</code>{' '}
+                  to your <code className="bg-gold-100 px-1 py-0.5 rounded font-mono">.env</code> and restart.
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -377,8 +430,6 @@ export default function App() {
         {/* Results */}
         {result && (
           <section className="space-y-5">
-
-            {/* Summary */}
             <div className="bg-white rounded-2xl shadow-card border border-navy-100 px-6 py-5">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-bold uppercase tracking-widest text-navy-400">Summary</p>
@@ -401,7 +452,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Category cards */}
             {totalFindings === 0 ? (
               <div className="bg-white rounded-2xl shadow-card border border-navy-100 px-6 py-8 text-center">
                 <p className="text-navy-400 text-sm">No significant issues detected in this record.</p>
@@ -447,7 +497,9 @@ export default function App() {
                     <div>
                       <h2 className="text-sm font-semibold text-white">Research Roadmap</h2>
                       <p className="text-xs text-navy-300 mt-0.5">
-                        Prioritized next steps to resolve the gaps found above
+                        {researcherContext.trim()
+                          ? 'Personalized next steps based on your family context and the gaps found above'
+                          : 'Prioritized next steps to resolve the gaps found above'}
                       </p>
                     </div>
                   </div>
@@ -482,7 +534,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-navy-100 bg-white mt-auto">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <span className="text-xs text-navy-400">Powered by Claude</span>
@@ -541,6 +592,14 @@ function ResourceIcon() {
     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 015.656 0l4-4a4 4 0 01-5.656-5.656l-1.102 1.101" />
+    </svg>
+  )
+}
+
+function PersonIcon() {
+  return (
+    <svg className="h-5 w-5 text-gold-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
     </svg>
   )
 }
