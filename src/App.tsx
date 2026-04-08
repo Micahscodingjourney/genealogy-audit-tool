@@ -183,8 +183,6 @@ export default function App() {
   const [result, setResult] = useState<AuditResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined
-
   async function handleAudit() {
     if (!inputText.trim()) return
     setIsLoading(true)
@@ -192,13 +190,10 @@ export default function App() {
     setError(null)
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': apiKey ?? '',
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
@@ -384,7 +379,7 @@ export default function App() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleAudit}
-                    disabled={isLoading || !inputText.trim() || !apiKey}
+                    disabled={isLoading || !inputText.trim()}
                     className="inline-flex items-center gap-2 rounded-lg bg-navy-700 hover:bg-navy-600 active:bg-navy-800 text-white text-sm font-semibold px-5 py-2.5 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
                   >
                     {isLoading ? <><Spinner />Auditing…</> : <><AuditIcon />Audit Record</>}
@@ -405,13 +400,6 @@ export default function App() {
                 )}
               </div>
 
-              {!apiKey && (
-                <div className="px-6 py-3 bg-gold-50 border-t border-gold-100 text-xs text-gold-800">
-                  No API key — add{' '}
-                  <code className="bg-gold-100 px-1 py-0.5 rounded font-mono">VITE_ANTHROPIC_API_KEY</code>{' '}
-                  to your <code className="bg-gold-100 px-1 py-0.5 rounded font-mono">.env</code> and restart.
-                </div>
-              )}
             </div>
           </div>
         </div>
