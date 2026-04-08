@@ -1,37 +1,49 @@
 import { useState } from 'react'
 
+interface ResearchStep {
+  action: string
+  resource: string
+  priority: 'high' | 'medium' | 'low'
+}
+
 interface AuditResult {
   missingNames: string[]
   dateGaps: string[]
   lineageGaps: string[]
   incompleteOrContradictory: string[]
   summary: string
+  researchSteps: ResearchStep[]
 }
 
-const SYSTEM_PROMPT = `You are an expert genealogical record analyst with deep knowledge of historical records, census documents, vital records, and family histories.
+const SYSTEM_PROMPT = `You are an expert genealogical record analyst with deep knowledge of historical records, census documents, vital records, and family histories — including African American genealogy, Freedmen's Bureau records, and plantation records.
 
-When given a genealogical text snippet, analyze it carefully and return a JSON object with exactly these fields:
+Analyze the given genealogical text and return ONLY a JSON object with exactly these fields:
 
 {
   "missingNames": [...],
   "dateGaps": [...],
   "lineageGaps": [...],
   "incompleteOrContradictory": [...],
-  "summary": "..."
+  "summary": "...",
+  "researchSteps": [
+    { "action": "...", "resource": "...", "priority": "high" | "medium" | "low" }
+  ]
 }
 
 Field definitions:
-- missingNames: Individuals who are unnamed, referred to only by relationship ("wife," "son"), given an ambiguous identifier, or whose identity cannot be confirmed from the record alone.
-- dateGaps: Dates that are missing, approximate (circa, abt., ~), given as ranges, internally inconsistent, or biologically implausible.
-- lineageGaps: Missing generational links, unverified parent-child relationships, orphaned individuals with no family context, or breaks in the documented lineage.
-- incompleteOrContradictory: Facts that conflict with other facts in the record, entries that seem incomplete, or details that are internally contradictory.
-- summary: A 1–2 sentence overall assessment of the record's completeness and reliability.
+- missingNames: Individuals unnamed, referred to only by relationship ("wife," "son"), or whose identity cannot be confirmed.
+- dateGaps: Missing, approximate (circa, abt., ~), inconsistent, or biologically implausible dates.
+- lineageGaps: Missing generational links, unverified parent-child relationships, or breaks in the documented lineage.
+- incompleteOrContradictory: Facts that conflict with other facts, incomplete entries, or internal contradictions.
+- summary: 1–2 sentence overall assessment of the record's completeness and reliability.
+- researchSteps: Up to 6 specific, actionable next steps a researcher should take to resolve the gaps found. Each step must have:
+    - action: exactly what to do (be specific — name the record type, time period, and location)
+    - resource: the best place to find it (e.g. "FamilySearch.org", "Ancestry.com", "NARA Archives", "Freedmen's Bureau Records on FamilySearch", "Monticello Getting Word Project", "state vital records office", etc.)
+    - priority: "high" if it directly resolves a named person or date, "medium" for corroborating evidence, "low" for contextual background
 
-Each array entry should be a concise, specific finding (1–2 sentences max). If a category has no issues, return an empty array.
+Order researchSteps from highest to lowest priority. Be specific and actionable — a researcher should be able to act on each step immediately.
 Return ONLY valid JSON — no markdown, no code fences, no preamble.`
 
-// Real historical record: Fossett family of Monticello (Thomas Jefferson's plantation)
-// Based on documented records from Monticello, the Freedmen's Bureau, and 1870 census.
 const SAMPLE_RECORD = `Fossett Family — Albemarle County, Virginia (compiled from multiple sources)
 
 Joseph Fossett, b. abt. 1780, enslaved blacksmith at Monticello. Listed in Jefferson's 1826 will as one of five individuals to be freed. Wife: Edith Hern Fossett, b. abt. 1787, also enslaved at Monticello as a cook — trained in France under Jefferson's chef. Edith not freed under the will; fate following 1826 estate sale unclear from surviving records.
@@ -48,7 +60,7 @@ Peter Fossett appears in Cincinnati city directories 1850s–1870s as a caterer.
 No death records located for Joseph or Edith Fossett in Virginia or Ohio. Burial site unknown.`
 
 interface Category {
-  key: keyof Omit<AuditResult, 'summary'>
+  key: keyof Omit<AuditResult, 'summary' | 'researchSteps'>
   label: string
   description: string
   borderColor: string
@@ -73,27 +85,27 @@ const categories: Category[] = [
     key: 'dateGaps',
     label: 'Date Gaps & Uncertainties',
     description: 'Missing, approximate, or conflicting dates',
-    borderColor: 'border-olive-400',
-    bgColor: 'bg-olive-50',
-    badgeColor: 'bg-olive-100 text-olive-700',
-    textColor: 'text-olive-800',
-    dotColor: 'bg-olive-400',
+    borderColor: 'border-navy-400',
+    bgColor: 'bg-navy-50',
+    badgeColor: 'bg-navy-100 text-navy-700',
+    textColor: 'text-navy-800',
+    dotColor: 'bg-navy-400',
   },
   {
     key: 'lineageGaps',
     label: 'Lineage Gaps',
     description: 'Breaks or unverified links in the family line',
-    borderColor: 'border-olive-300',
-    bgColor: 'bg-olive-50/60',
-    badgeColor: 'bg-olive-100 text-olive-600',
-    textColor: 'text-olive-700',
-    dotColor: 'bg-olive-300',
+    borderColor: 'border-navy-300',
+    bgColor: 'bg-navy-50/60',
+    badgeColor: 'bg-navy-100 text-navy-600',
+    textColor: 'text-navy-700',
+    dotColor: 'bg-navy-300',
   },
   {
     key: 'incompleteOrContradictory',
     label: 'Incomplete or Contradictory Records',
     description: 'Facts that conflict or cannot be reconciled',
-    borderColor: 'border-gold-600',
+    borderColor: 'border-gold-500',
     bgColor: 'bg-gold-50/70',
     badgeColor: 'bg-gold-200 text-gold-800',
     textColor: 'text-gold-900',
@@ -105,25 +117,25 @@ const steps = [
   {
     number: '1',
     heading: 'Paste your record',
-    body: 'Census entries, church registers, family Bible transcriptions, vital records, plantation records, or any narrative family history text.',
+    body: 'Census entries, church registers, family Bibles, vital records, plantation records, or any narrative family history text.',
   },
   {
     number: '2',
     heading: 'Click Audit Record',
-    body: 'Claude reads the full text and flags gaps, ambiguities, and inconsistencies across four structured categories.',
+    body: 'Claude analyzes the text and flags gaps, ambiguities, and inconsistencies across four structured categories.',
   },
   {
     number: '3',
-    heading: 'Review the findings',
-    body: 'Each finding is a specific, cited observation. Cross-reference against primary sources before drawing conclusions.',
+    heading: 'Follow the roadmap',
+    body: 'A prioritized list of specific next research steps is generated automatically — telling you exactly where to look.',
   },
 ]
 
 const dos = [
   'Historical census or vital records',
   'Transcribed church or estate documents',
-  'Published family history excerpts',
   'Freedmen\'s Bureau or plantation records',
+  'Published family history excerpts',
   'Compiled genealogical narratives',
 ]
 
@@ -133,6 +145,12 @@ const donts = [
   'Medical or financial records',
   'Private correspondence not your own',
 ]
+
+const priorityStyles = {
+  high:   { badge: 'bg-navy-700 text-white',         label: 'High' },
+  medium: { badge: 'bg-gold-100 text-gold-800',       label: 'Medium' },
+  low:    { badge: 'bg-navy-100 text-navy-600',        label: 'Low' },
+}
 
 function extractJson(raw: string): string {
   const match = raw.match(/\{[\s\S]*\}/)
@@ -198,49 +216,49 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Top accent bar */}
-      <div className="h-1 bg-gradient-to-r from-olive-700 via-gold-500 to-olive-400" />
+      <div className="h-1 bg-gradient-to-r from-navy-800 via-gold-400 to-navy-600" />
 
       {/* Header */}
-      <header className="bg-white border-b border-olive-100 shadow-sm">
+      <header className="bg-white border-b border-navy-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-6 py-7">
-          <div className="flex items-center gap-3 mb-1">
-            <LeafIcon />
-            <span className="text-xs font-semibold tracking-widest uppercase text-olive-500">
+          <div className="flex items-center gap-2.5 mb-1">
+            <ArchiveIcon />
+            <span className="text-xs font-semibold tracking-widest uppercase text-navy-400">
               Research Tool
             </span>
           </div>
-          <h1 className="font-serif text-3xl font-semibold text-olive-900 tracking-tight">
+          <h1 className="font-serif text-3xl font-semibold text-navy-900 tracking-tight">
             Genealogy Record Auditor
           </h1>
-          <p className="mt-1.5 text-sm text-olive-500 max-w-xl leading-relaxed">
+          <p className="mt-1.5 text-sm text-navy-500 max-w-xl leading-relaxed">
             AI-assisted analysis of historical genealogical documents — surfaces gaps,
-            ambiguities, and inconsistencies for further research.
+            ambiguities, and inconsistencies, then charts a path forward.
           </p>
         </div>
       </header>
 
       <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-10 space-y-8">
 
-        {/* ── Input row: steps left, textarea right ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 items-start">
+        {/* ── Input row: guide left, textarea right ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[288px_1fr] gap-6 items-start">
 
-          {/* Left: How-to panel */}
-          <div className="space-y-5">
+          {/* Left: Guide panel */}
+          <div className="space-y-4">
 
             {/* Steps */}
-            <div className="bg-white rounded-2xl border border-olive-100 shadow-card p-5">
-              <p className="text-xs font-bold uppercase tracking-widest text-olive-400 mb-4">
+            <div className="bg-white rounded-2xl border border-navy-100 shadow-card p-5">
+              <p className="text-xs font-bold uppercase tracking-widest text-navy-400 mb-4">
                 How it works
               </p>
               <ol className="space-y-4">
                 {steps.map((s) => (
                   <li key={s.number} className="flex gap-3">
-                    <span className="shrink-0 h-6 w-6 rounded-full bg-olive-100 text-olive-700 text-xs font-bold flex items-center justify-center mt-0.5">
+                    <span className="shrink-0 h-6 w-6 rounded-full bg-navy-700 text-white text-xs font-bold flex items-center justify-center mt-0.5">
                       {s.number}
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-olive-800">{s.heading}</p>
-                      <p className="text-xs text-olive-500 mt-0.5 leading-relaxed">{s.body}</p>
+                      <p className="text-sm font-semibold text-navy-800">{s.heading}</p>
+                      <p className="text-xs text-navy-500 mt-0.5 leading-relaxed">{s.body}</p>
                     </div>
                   </li>
                 ))}
@@ -248,14 +266,14 @@ export default function App() {
             </div>
 
             {/* Do's */}
-            <div className="bg-white rounded-2xl border border-olive-100 shadow-card p-5">
-              <p className="text-xs font-bold uppercase tracking-widest text-olive-400 mb-3">
+            <div className="bg-white rounded-2xl border border-navy-100 shadow-card p-5">
+              <p className="text-xs font-bold uppercase tracking-widest text-navy-400 mb-3">
                 Works well with
               </p>
               <ul className="space-y-2">
                 {dos.map((d) => (
-                  <li key={d} className="flex items-start gap-2 text-xs text-olive-700">
-                    <span className="mt-0.5 text-olive-400">✓</span>
+                  <li key={d} className="flex items-start gap-2 text-xs text-navy-700">
+                    <span className="mt-0.5 text-gold-500 font-bold">✓</span>
                     {d}
                   </li>
                 ))}
@@ -269,40 +287,40 @@ export default function App() {
               </p>
               <ul className="space-y-2">
                 {donts.map((d) => (
-                  <li key={d} className="flex items-start gap-2 text-xs text-olive-600">
-                    <span className="mt-0.5 text-gold-500">✕</span>
+                  <li key={d} className="flex items-start gap-2 text-xs text-navy-600">
+                    <span className="mt-0.5 text-gold-500 font-bold">✕</span>
                     {d}
                   </li>
                 ))}
               </ul>
-              <p className="mt-3 text-xs text-olive-400 border-t border-gold-100 pt-3 leading-relaxed">
-                This tool is for historical records only. Do not submit data about living people.
+              <p className="mt-3 text-xs text-navy-400 border-t border-gold-100 pt-3 leading-relaxed">
+                For historical records only. Do not submit data about living people.
               </p>
             </div>
 
-            {/* Sample record button */}
+            {/* Sample */}
             <button
               onClick={() => setInputText(SAMPLE_RECORD)}
-              className="w-full rounded-xl border border-olive-200 bg-olive-50 hover:bg-olive-100 text-olive-700 text-xs font-semibold px-4 py-2.5 transition-colors flex items-center justify-center gap-2"
+              className="w-full rounded-xl border border-navy-200 bg-navy-50 hover:bg-navy-100 text-navy-700 text-xs font-semibold px-4 py-2.5 transition-colors flex items-center justify-center gap-2"
             >
               <ScrollIcon />
               Load a real historical record
             </button>
           </div>
 
-          {/* Right: Textarea + button */}
-          <div className="bg-white rounded-2xl shadow-card border border-olive-100 overflow-hidden">
+          {/* Right: Textarea */}
+          <div className="bg-white rounded-2xl shadow-card border border-navy-100 overflow-hidden">
             <div className="px-6 pt-6 pb-2">
               <label
                 htmlFor="record-input"
-                className="block text-xs font-semibold uppercase tracking-widest text-olive-400 mb-3"
+                className="block text-xs font-semibold uppercase tracking-widest text-navy-400 mb-3"
               >
                 Historical Record
               </label>
               <textarea
                 id="record-input"
                 rows={14}
-                className="w-full rounded-xl border border-olive-200 bg-parchment px-4 py-3.5 text-sm text-olive-900 placeholder-olive-300 resize-y focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent transition scrollbar-thin leading-relaxed"
+                className="w-full rounded-xl border border-navy-200 bg-canvas px-4 py-3.5 text-sm text-navy-900 placeholder-navy-300 resize-y focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent transition scrollbar-thin leading-relaxed"
                 placeholder={`Paste a census record, family Bible entry, vital record, or any historical genealogical text here…\n\nOr click "Load a real historical record" on the left to try a documented example.`}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
@@ -310,36 +328,26 @@ export default function App() {
               />
             </div>
 
-            <div className="px-6 py-4 flex items-center justify-between border-t border-olive-50 bg-olive-50/40">
+            <div className="px-6 py-4 flex items-center justify-between border-t border-navy-50 bg-navy-50/40">
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleAudit}
                   disabled={isLoading || !inputText.trim() || !apiKey}
-                  className="inline-flex items-center gap-2 rounded-lg bg-olive-700 hover:bg-olive-600 active:bg-olive-800 text-white text-sm font-semibold px-5 py-2.5 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
+                  className="inline-flex items-center gap-2 rounded-lg bg-navy-700 hover:bg-navy-600 active:bg-navy-800 text-white text-sm font-semibold px-5 py-2.5 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
                 >
-                  {isLoading ? (
-                    <>
-                      <Spinner />
-                      Auditing…
-                    </>
-                  ) : (
-                    <>
-                      <AuditIcon />
-                      Audit Record
-                    </>
-                  )}
+                  {isLoading ? <><Spinner />Auditing…</> : <><AuditIcon />Audit Record</>}
                 </button>
                 {result && (
                   <button
                     onClick={() => { setResult(null); setError(null) }}
-                    className="text-sm text-olive-400 hover:text-olive-700 underline underline-offset-2 transition-colors"
+                    className="text-sm text-navy-400 hover:text-navy-700 underline underline-offset-2 transition-colors"
                   >
                     Clear
                   </button>
                 )}
               </div>
               {inputText.trim() && (
-                <span className="text-xs text-olive-400">
+                <span className="text-xs text-navy-400">
                   {inputText.trim().split(/\s+/).length} words
                 </span>
               )}
@@ -347,7 +355,7 @@ export default function App() {
 
             {!apiKey && (
               <div className="px-6 py-3 bg-gold-50 border-t border-gold-100 text-xs text-gold-800">
-                No API key detected — add{' '}
+                No API key — add{' '}
                 <code className="bg-gold-100 px-1 py-0.5 rounded font-mono">VITE_ANTHROPIC_API_KEY</code>{' '}
                 to your <code className="bg-gold-100 px-1 py-0.5 rounded font-mono">.env</code> and restart.
               </div>
@@ -370,26 +378,21 @@ export default function App() {
         {result && (
           <section className="space-y-5">
 
-            {/* Summary bar */}
-            <div className="bg-white rounded-2xl shadow-card border border-olive-100 px-6 py-5">
+            {/* Summary */}
+            <div className="bg-white rounded-2xl shadow-card border border-navy-100 px-6 py-5">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold uppercase tracking-widest text-olive-400">
-                  Summary
-                </p>
-                <span className="text-xs font-semibold rounded-full bg-olive-100 text-olive-700 px-3 py-1">
+                <p className="text-xs font-bold uppercase tracking-widest text-navy-400">Summary</p>
+                <span className="text-xs font-semibold rounded-full bg-navy-100 text-navy-700 px-3 py-1">
                   {totalFindings} finding{totalFindings !== 1 ? 's' : ''}
                 </span>
               </div>
-              <p className="text-sm text-olive-800 leading-relaxed">{result.summary}</p>
+              <p className="text-sm text-navy-800 leading-relaxed">{result.summary}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {categories.map((c) => {
                   const count = result[c.key].length
                   if (count === 0) return null
                   return (
-                    <span
-                      key={c.key}
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${c.badgeColor}`}
-                    >
+                    <span key={c.key} className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${c.badgeColor}`}>
                       <span className={`h-1.5 w-1.5 rounded-full ${c.dotColor}`} />
                       {c.label.split(' ')[0]} · {count}
                     </span>
@@ -400,8 +403,8 @@ export default function App() {
 
             {/* Category cards */}
             {totalFindings === 0 ? (
-              <div className="bg-white rounded-2xl shadow-card border border-olive-100 px-6 py-8 text-center">
-                <p className="text-olive-400 text-sm">No significant issues detected in this record.</p>
+              <div className="bg-white rounded-2xl shadow-card border border-navy-100 px-6 py-8 text-center">
+                <p className="text-navy-400 text-sm">No significant issues detected in this record.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -409,26 +412,23 @@ export default function App() {
                   const items = result[cat.key]
                   if (items.length === 0) return null
                   return (
-                    <div
-                      key={cat.key}
-                      className={`bg-white rounded-2xl shadow-card border border-olive-100 border-l-4 ${cat.borderColor} overflow-hidden`}
-                    >
-                      <div className={`px-5 py-4 ${cat.bgColor} border-b border-olive-100/60`}>
+                    <div key={cat.key} className={`bg-white rounded-2xl shadow-card border border-navy-100 border-l-4 ${cat.borderColor} overflow-hidden`}>
+                      <div className={`px-5 py-4 ${cat.bgColor} border-b border-navy-100/60`}>
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <h2 className={`text-sm font-semibold ${cat.textColor}`}>{cat.label}</h2>
-                            <p className="text-xs text-olive-400 mt-0.5">{cat.description}</p>
+                            <p className="text-xs text-navy-400 mt-0.5">{cat.description}</p>
                           </div>
                           <span className={`shrink-0 text-xs font-bold rounded-full px-2 py-0.5 ${cat.badgeColor}`}>
                             {items.length}
                           </span>
                         </div>
                       </div>
-                      <ul className="divide-y divide-olive-50">
+                      <ul className="divide-y divide-navy-50">
                         {items.map((item, i) => (
                           <li key={i} className="px-5 py-3 flex gap-3 items-start">
                             <span className={`mt-1.5 shrink-0 h-1.5 w-1.5 rounded-full ${cat.dotColor}`} />
-                            <span className="text-sm text-olive-700 leading-relaxed">{item}</span>
+                            <span className="text-sm text-navy-700 leading-relaxed">{item}</span>
                           </li>
                         ))}
                       </ul>
@@ -437,15 +437,56 @@ export default function App() {
                 })}
               </div>
             )}
+
+            {/* Research Roadmap */}
+            {result.researchSteps?.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-card border border-navy-100 overflow-hidden">
+                <div className="px-6 py-5 border-b border-navy-100 bg-navy-700">
+                  <div className="flex items-center gap-3">
+                    <CompassIcon />
+                    <div>
+                      <h2 className="text-sm font-semibold text-white">Research Roadmap</h2>
+                      <p className="text-xs text-navy-300 mt-0.5">
+                        Prioritized next steps to resolve the gaps found above
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <ol className="divide-y divide-navy-50">
+                  {result.researchSteps.map((step, i) => {
+                    const ps = priorityStyles[step.priority] ?? priorityStyles.low
+                    return (
+                      <li key={i} className="px-6 py-4 flex gap-4 items-start">
+                        <span className="shrink-0 h-6 w-6 rounded-full bg-navy-100 text-navy-600 text-xs font-bold flex items-center justify-center mt-0.5">
+                          {i + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-navy-800 leading-relaxed">{step.action}</p>
+                          <div className="mt-2 flex items-center gap-2 flex-wrap">
+                            <span className="inline-flex items-center gap-1 rounded-md bg-navy-50 border border-navy-200 px-2 py-0.5 text-xs font-medium text-navy-600">
+                              <ResourceIcon />
+                              {step.resource}
+                            </span>
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ps.badge}`}>
+                              {ps.label} priority
+                            </span>
+                          </div>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ol>
+              </div>
+            )}
           </section>
         )}
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-olive-100 bg-white mt-auto">
+      <footer className="border-t border-navy-100 bg-white mt-auto">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <span className="text-xs text-olive-400">Powered by Claude</span>
-          <span className="text-xs text-olive-300">
+          <span className="text-xs text-navy-400">Powered by Claude</span>
+          <span className="text-xs text-navy-300">
             Analysis is advisory — verify all findings against primary sources
           </span>
         </div>
@@ -463,11 +504,10 @@ function Spinner() {
   )
 }
 
-function LeafIcon() {
+function ArchiveIcon() {
   return (
-    <svg className="h-4 w-4 text-olive-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.5c0 0-7-3.5-7-10A7 7 0 0119 8.5c0 6.5-7 10-7 10z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.5V22" />
+    <svg className="h-4 w-4 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
     </svg>
   )
 }
@@ -484,6 +524,23 @@ function ScrollIcon() {
   return (
     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+  )
+}
+
+function CompassIcon() {
+  return (
+    <svg className="h-5 w-5 text-gold-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+    </svg>
+  )
+}
+
+function ResourceIcon() {
+  return (
+    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 015.656 0l4-4a4 4 0 01-5.656-5.656l-1.102 1.101" />
     </svg>
   )
 }
