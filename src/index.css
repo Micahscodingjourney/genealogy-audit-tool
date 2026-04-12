@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Cinzel:wght@400;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,6 +8,78 @@
   body {
     @apply bg-canvas text-navy-900 antialiased;
     font-family: 'Inter', system-ui, sans-serif;
+    /* Stone course lines — very subtle horizontal bands like travertine */
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 79px,
+      rgba(196, 149, 32, 0.045) 79px,
+      rgba(196, 149, 32, 0.045) 80px
+    );
+  }
+}
+
+/* ── Classical card top — cornice double-line ── */
+@layer components {
+  .cornice {
+    position: relative;
+    border-top: 2.5px solid theme('colors.gold.400');
+  }
+  .cornice::after {
+    content: '';
+    position: absolute;
+    top: 2.5px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: theme('colors.gold.200');
+    pointer-events: none;
+  }
+
+  /* Arch cutout at the bottom of a dark header block */
+  .arch-bottom {
+    position: relative;
+    overflow: visible;
+  }
+  .arch-bottom::after {
+    content: '';
+    position: absolute;
+    bottom: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    height: 28px;
+    background: white;
+    border-radius: 50% 50% 0 0 / 28px 28px 0 0;
+    z-index: 1;
+  }
+
+  /* Column shaft — thin vertical gold line for panel edges */
+  .column-left {
+    border-left: 2px solid;
+    border-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      theme('colors.gold.300') 15%,
+      theme('colors.gold.400') 50%,
+      theme('colors.gold.300') 85%,
+      transparent 100%
+    ) 1;
+  }
+  .column-right {
+    border-right: 2px solid;
+    border-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      theme('colors.gold.300') 15%,
+      theme('colors.gold.400') 50%,
+      theme('colors.gold.300') 85%,
+      transparent 100%
+    ) 1;
+  }
+
+  .font-cinzel {
+    font-family: 'Cinzel', Georgia, serif;
   }
 }
 

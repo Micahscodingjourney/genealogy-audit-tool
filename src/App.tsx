@@ -46,12 +46,10 @@ Field definitions:
 - lineageGaps: Missing generational links, unverified parent-child relationships, or breaks in the documented lineage.
 - incompleteOrContradictory: Facts that conflict with other facts, incomplete entries, or internal contradictions.
 - summary: 1–2 sentence overall assessment of the record's completeness and reliability.
-- researchSteps: Up to 6 specific, actionable next steps to resolve the gaps found. Each step:
-    - action: exactly what to do — name the record type, time period, location, and any relevant personal names from the researcher's context
+- researchSteps: Up to 6 specific, actionable next steps. Each step:
+    - action: exactly what to do — name the record type, time period, location, and relevant personal names
     - resource: best place to find it (FamilySearch.org, Ancestry.com, NARA, Freedmen's Bureau Records on FamilySearch, Monticello Getting Word Project, state vital records office, etc.)
     - priority: "high" if it directly resolves a named person or date; "medium" for corroborating evidence; "low" for contextual background
-
-Order steps from highest to lowest priority. Be specific enough that the researcher can act on each step immediately.
 Return ONLY valid JSON — no markdown, no code fences, no preamble.`
 
 const SAMPLE_RECORD = `Fossett Family — Albemarle County, Virginia (compiled from multiple sources)
@@ -127,17 +125,17 @@ const categories: Category[] = [
 
 const steps = [
   {
-    number: '1',
+    number: 'I',
     heading: 'Describe your connection',
     body: 'In the gold field, write who you are, your known relatives, and what you\'re trying to find. The more specific, the more targeted the roadmap.',
   },
   {
-    number: '2',
+    number: 'II',
     heading: 'Paste the historical record',
     body: 'Add the primary source text — census entry, church register, family narrative, plantation record, etc.',
   },
   {
-    number: '3',
+    number: 'III',
     heading: 'Get a personal roadmap',
     body: 'Claude audits the record and generates next steps specific to your name, family, and the gaps in the document.',
   },
@@ -192,9 +190,7 @@ export default function App() {
     try {
       const response = await fetch('/api/messages', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
           max_tokens: 2048,
@@ -230,40 +226,63 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="h-1 bg-gradient-to-r from-navy-800 via-gold-400 to-navy-600" />
 
-      <header className="bg-white border-b border-navy-100 shadow-sm">
-        <div className="max-w-6xl mx-auto px-6 py-7">
-          <div className="flex items-center gap-2.5 mb-1">
-            <ArchiveIcon />
-            <span className="text-xs font-semibold tracking-widest uppercase text-navy-400">
-              Research Tool
-            </span>
+      {/* ── Multi-line classical top band ── */}
+      <div className="h-1 bg-gold-500" />
+      <div className="h-px bg-gold-300" />
+      <div className="h-0.5 bg-navy-800" />
+
+      {/* ── Header ── */}
+      <header className="bg-white border-b border-navy-100 relative overflow-hidden">
+        {/* Faint arch watermark behind content */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-[0.025]">
+          <ArchWatermark />
+        </div>
+
+        <div className="max-w-6xl mx-auto px-8 py-8 relative">
+          {/* Ornamental top rule */}
+          <OrnamentalRule className="mb-6" />
+
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <ColumnCapital />
+                <span className="font-cinzel text-xs tracking-[0.25em] uppercase text-gold-600">
+                  Research Instrument
+                </span>
+                <ColumnCapital />
+              </div>
+              <h1 className="font-cinzel text-4xl font-semibold text-navy-900 tracking-wide leading-tight">
+                Genealogy Record Auditor
+              </h1>
+              <p className="mt-3 text-sm text-navy-500 max-w-lg leading-relaxed">
+                AI-assisted analysis of historical genealogical documents — surfaces gaps,
+                ambiguities, and inconsistencies, then charts a personalized path forward.
+              </p>
+            </div>
           </div>
-          <h1 className="font-serif text-3xl font-semibold text-navy-900 tracking-tight">
-            Genealogy Record Auditor
-          </h1>
-          <p className="mt-1.5 text-sm text-navy-500 max-w-xl leading-relaxed">
-            AI-assisted analysis of historical genealogical documents — surfaces gaps,
-            ambiguities, and inconsistencies, then charts a personalized path forward.
-          </p>
+
+          {/* Ornamental bottom rule */}
+          <OrnamentalRule className="mt-6" />
         </div>
       </header>
 
-      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-10 space-y-8">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-10 space-y-10">
 
+        {/* ── Input grid ── */}
         <div className="grid grid-cols-1 lg:grid-cols-[288px_1fr] gap-6 items-start">
 
-          {/* Left guide panel */}
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl border border-navy-100 shadow-card p-5">
-              <p className="text-xs font-bold uppercase tracking-widest text-navy-400 mb-4">
+          {/* Left guide panel — column accents */}
+          <div className="column-left column-right px-4 space-y-4">
+
+            <div className="bg-white rounded-xl border border-navy-100 shadow-card cornice p-5">
+              <p className="font-cinzel text-xs tracking-widest uppercase text-gold-600 mb-4">
                 How it works
               </p>
-              <ol className="space-y-4">
+              <ol className="space-y-5">
                 {steps.map((s) => (
                   <li key={s.number} className="flex gap-3">
-                    <span className="shrink-0 h-6 w-6 rounded-full bg-navy-700 text-white text-xs font-bold flex items-center justify-center mt-0.5">
+                    <span className="font-cinzel shrink-0 h-7 w-7 rounded-full border-2 border-gold-400 text-gold-600 text-xs font-bold flex items-center justify-center mt-0.5">
                       {s.number}
                     </span>
                     <div>
@@ -275,24 +294,28 @@ export default function App() {
               </ol>
             </div>
 
-            <div className="bg-white rounded-2xl border border-navy-100 shadow-card p-5">
-              <p className="text-xs font-bold uppercase tracking-widest text-navy-400 mb-3">Works well with</p>
+            <div className="bg-white rounded-xl border border-navy-100 shadow-card cornice p-5">
+              <p className="font-cinzel text-xs tracking-widest uppercase text-gold-600 mb-3">
+                Works well with
+              </p>
               <ul className="space-y-2">
                 {dos.map((d) => (
                   <li key={d} className="flex items-start gap-2 text-xs text-navy-700">
-                    <span className="mt-0.5 text-gold-500 font-bold">✓</span>
+                    <span className="mt-0.5 text-gold-500 font-bold">✦</span>
                     {d}
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gold-200 shadow-card p-5">
-              <p className="text-xs font-bold uppercase tracking-widest text-gold-600 mb-3">Avoid pasting</p>
+            <div className="bg-white rounded-xl border border-gold-200 shadow-card cornice p-5">
+              <p className="font-cinzel text-xs tracking-widest uppercase text-gold-600 mb-3">
+                Avoid pasting
+              </p>
               <ul className="space-y-2">
                 {donts.map((d) => (
                   <li key={d} className="flex items-start gap-2 text-xs text-navy-600">
-                    <span className="mt-0.5 text-gold-500 font-bold">✕</span>
+                    <span className="mt-0.5 text-navy-300 font-bold">✕</span>
                     {d}
                   </li>
                 ))}
@@ -304,7 +327,7 @@ export default function App() {
 
             <button
               onClick={() => { setInputText(SAMPLE_RECORD); setResearcherContext(SAMPLE_CONTEXT) }}
-              className="w-full rounded-xl border border-navy-200 bg-navy-50 hover:bg-navy-100 text-navy-700 text-xs font-semibold px-4 py-2.5 transition-colors flex items-center justify-center gap-2"
+              className="w-full rounded-xl border border-navy-200 bg-white hover:bg-navy-50 text-navy-700 text-xs font-semibold px-4 py-3 transition-colors flex items-center justify-center gap-2 cornice"
             >
               <ScrollIcon />
               Load a real historical record
@@ -314,60 +337,51 @@ export default function App() {
           {/* Right: inputs */}
           <div className="space-y-4">
 
-            {/* Researcher context — gold-accented, clearly distinct */}
-            <div className="bg-white rounded-2xl shadow-card border border-gold-300 overflow-hidden">
-              <div className="px-5 py-3.5 bg-gold-50 border-b border-gold-200 flex items-start gap-3">
+            {/* Researcher context — gold cornice */}
+            <div className="bg-white rounded-xl shadow-card border border-gold-300 cornice overflow-hidden">
+              <div className="px-5 py-4 bg-gradient-to-r from-gold-50 via-white to-gold-50 border-b border-gold-200 flex items-start gap-3">
                 <PersonIcon />
                 <div>
-                  <p className="text-sm font-semibold text-gold-900">
+                  <p className="font-cinzel text-sm font-semibold text-gold-900 tracking-wide">
                     Your Connection to this Record
                   </p>
-                  <p className="text-xs text-gold-700 mt-0.5 leading-relaxed">
-                    Tell us who you are and what you already know — your name, known relatives, and what you're trying to find.
-                    The roadmap will be tailored specifically to your family.
+                  <p className="text-xs text-gold-700 mt-1 leading-relaxed">
+                    Tell us who you are and what you already know — your name, known relatives, and what you're
+                    trying to find. The roadmap will be tailored specifically to your family.
                   </p>
                 </div>
               </div>
               <div className="px-5 py-4">
                 <textarea
                   rows={4}
-                  className="w-full rounded-xl border border-gold-200 bg-gold-50/40 px-4 py-3 text-sm text-navy-900 placeholder-gold-400 resize-none focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent transition leading-relaxed"
+                  className="w-full rounded-lg border border-gold-200 bg-gold-50/30 px-4 py-3 text-sm text-navy-900 placeholder-gold-400 resize-none focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent transition leading-relaxed"
                   placeholder={`Example: "My name is Micah Fossett. My father is Damirez Fossett. I believe we descend from Joseph and Edith Fossett of Monticello, Albemarle County, Virginia. I am trying to trace the line from Damirez back through the generations and find what connects us to this historical record."`}
                   value={researcherContext}
                   onChange={(e) => setResearcherContext(e.target.value)}
                   disabled={isLoading}
                 />
-                {!researcherContext.trim() && (
-                  <p className="mt-2 text-xs text-gold-600 flex items-center gap-1.5">
-                    <span>★</span>
-                    Optional but strongly recommended — without this, the roadmap will be generic rather than personal.
-                  </p>
-                )}
-                {researcherContext.trim() && (
-                  <p className="mt-2 text-xs text-gold-700 flex items-center gap-1.5">
-                    <span>✓</span>
-                    Context provided — the research roadmap will be tailored to your family.
-                  </p>
-                )}
+                <p className={`mt-2 text-xs flex items-center gap-1.5 ${researcherContext.trim() ? 'text-gold-700' : 'text-gold-500'}`}>
+                  <span>{researcherContext.trim() ? '✦' : '◇'}</span>
+                  {researcherContext.trim()
+                    ? 'Context provided — roadmap will be tailored to your family.'
+                    : 'Optional but recommended — without this the roadmap will be generic.'}
+                </p>
               </div>
             </div>
 
-            {/* Historical record textarea */}
-            <div className="bg-white rounded-2xl shadow-card border border-navy-100 overflow-hidden">
+            {/* Historical record */}
+            <div className="bg-white rounded-xl shadow-card border border-navy-100 cornice overflow-hidden">
               <div className="px-6 pt-5 pb-2">
-                <label
-                  htmlFor="record-input"
-                  className="block text-xs font-semibold uppercase tracking-widest text-navy-400 mb-1"
-                >
+                <label htmlFor="record-input" className="block font-cinzel text-xs tracking-widest uppercase text-navy-500 mb-1">
                   Historical Record
                 </label>
                 <p className="text-xs text-navy-400 mb-3">
-                  Paste the primary source text you want audited — census entry, church register, family narrative, plantation record, etc.
+                  Paste the primary source text — census entry, church register, family narrative, plantation record, etc.
                 </p>
                 <textarea
                   id="record-input"
                   rows={12}
-                  className="w-full rounded-xl border border-navy-200 bg-canvas px-4 py-3.5 text-sm text-navy-900 placeholder-navy-300 resize-y focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent transition scrollbar-thin leading-relaxed"
+                  className="w-full rounded-lg border border-navy-200 bg-canvas px-4 py-3.5 text-sm text-navy-900 placeholder-navy-300 resize-y focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent transition scrollbar-thin leading-relaxed"
                   placeholder={`Paste a census record, family Bible entry, vital record, or any historical genealogical text here…\n\nOr click "Load a real historical record" on the left to try a documented example.`}
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
@@ -380,7 +394,7 @@ export default function App() {
                   <button
                     onClick={handleAudit}
                     disabled={isLoading || !inputText.trim()}
-                    className="inline-flex items-center gap-2 rounded-lg bg-navy-700 hover:bg-navy-600 active:bg-navy-800 text-white text-sm font-semibold px-5 py-2.5 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
+                    className="inline-flex items-center gap-2 rounded-lg bg-navy-800 hover:bg-navy-700 active:bg-navy-900 text-white text-sm font-semibold px-6 py-2.5 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 border border-navy-700"
                   >
                     {isLoading ? <><Spinner />Auditing…</> : <><AuditIcon />Audit Record</>}
                   </button>
@@ -394,12 +408,11 @@ export default function App() {
                   )}
                 </div>
                 {inputText.trim() && (
-                  <span className="text-xs text-navy-400">
+                  <span className="text-xs text-navy-400 font-cinzel tracking-wider">
                     {inputText.trim().split(/\s+/).length} words
                   </span>
                 )}
               </div>
-
             </div>
           </div>
         </div>
@@ -417,11 +430,18 @@ export default function App() {
 
         {/* Results */}
         {result && (
-          <section className="space-y-5">
-            <div className="bg-white rounded-2xl shadow-card border border-navy-100 px-6 py-5">
+          <section className="space-y-6">
+
+            {/* Section ornamental divider */}
+            <OrnamentalRule />
+
+            {/* Summary */}
+            <div className="bg-white rounded-xl shadow-card border border-navy-100 cornice px-6 py-5">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold uppercase tracking-widest text-navy-400">Summary</p>
-                <span className="text-xs font-semibold rounded-full bg-navy-100 text-navy-700 px-3 py-1">
+                <p className="font-cinzel text-xs tracking-widest uppercase text-gold-600">
+                  Summary
+                </p>
+                <span className="font-cinzel text-xs font-semibold rounded-full bg-navy-100 text-navy-700 px-3 py-1 tracking-wider">
                   {totalFindings} finding{totalFindings !== 1 ? 's' : ''}
                 </span>
               </div>
@@ -440,8 +460,9 @@ export default function App() {
               </div>
             </div>
 
+            {/* Category cards */}
             {totalFindings === 0 ? (
-              <div className="bg-white rounded-2xl shadow-card border border-navy-100 px-6 py-8 text-center">
+              <div className="bg-white rounded-xl shadow-card border border-navy-100 cornice px-6 py-8 text-center">
                 <p className="text-navy-400 text-sm">No significant issues detected in this record.</p>
               </div>
             ) : (
@@ -450,22 +471,22 @@ export default function App() {
                   const items = result[cat.key]
                   if (items.length === 0) return null
                   return (
-                    <div key={cat.key} className={`bg-white rounded-2xl shadow-card border border-navy-100 border-l-4 ${cat.borderColor} overflow-hidden`}>
+                    <div key={cat.key} className={`bg-white rounded-xl shadow-card border border-navy-100 border-l-4 ${cat.borderColor} overflow-hidden`}>
                       <div className={`px-5 py-4 ${cat.bgColor} border-b border-navy-100/60`}>
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <h2 className={`text-sm font-semibold ${cat.textColor}`}>{cat.label}</h2>
-                            <p className="text-xs text-navy-400 mt-0.5">{cat.description}</p>
+                            <h2 className={`font-cinzel text-xs tracking-wider uppercase ${cat.textColor}`}>{cat.label}</h2>
+                            <p className="text-xs text-navy-400 mt-1">{cat.description}</p>
                           </div>
-                          <span className={`shrink-0 text-xs font-bold rounded-full px-2 py-0.5 ${cat.badgeColor}`}>
+                          <span className={`shrink-0 font-cinzel text-xs font-bold rounded-full px-2 py-0.5 ${cat.badgeColor}`}>
                             {items.length}
                           </span>
                         </div>
                       </div>
                       <ul className="divide-y divide-navy-50">
                         {items.map((item, i) => (
-                          <li key={i} className="px-5 py-3 flex gap-3 items-start">
-                            <span className={`mt-1.5 shrink-0 h-1.5 w-1.5 rounded-full ${cat.dotColor}`} />
+                          <li key={i} className="px-5 py-3.5 flex gap-3 items-start">
+                            <span className={`mt-2 shrink-0 h-1.5 w-1.5 rounded-full ${cat.dotColor}`} />
                             <span className="text-sm text-navy-700 leading-relaxed">{item}</span>
                           </li>
                         ))}
@@ -478,26 +499,36 @@ export default function App() {
 
             {/* Research Roadmap */}
             {result.researchSteps?.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-card border border-navy-100 overflow-hidden">
-                <div className="px-6 py-5 border-b border-navy-100 bg-navy-700">
-                  <div className="flex items-center gap-3">
+              <div className="bg-white rounded-xl shadow-card border border-navy-100 overflow-hidden">
+                {/* Arch-bottom header */}
+                <div className="bg-navy-800 px-6 pt-6 pb-10 arch-bottom relative">
+                  <div className="flex items-center gap-3 relative z-10">
                     <CompassIcon />
                     <div>
-                      <h2 className="text-sm font-semibold text-white">Research Roadmap</h2>
+                      <h2 className="font-cinzel text-base font-semibold text-white tracking-wide">
+                        Research Roadmap
+                      </h2>
                       <p className="text-xs text-navy-300 mt-0.5">
                         {researcherContext.trim()
-                          ? 'Personalized next steps based on your family context and the gaps found above'
+                          ? 'Personalized next steps based on your family context'
                           : 'Prioritized next steps to resolve the gaps found above'}
                       </p>
                     </div>
                   </div>
+                  {/* Flanking ornamental lines */}
+                  <div className="absolute bottom-5 left-6 right-6 flex items-center gap-3 opacity-30 z-10">
+                    <div className="flex-1 h-px bg-gold-400" />
+                    <span className="text-gold-400 text-xs">✦</span>
+                    <div className="flex-1 h-px bg-gold-400" />
+                  </div>
                 </div>
-                <ol className="divide-y divide-navy-50">
+
+                <ol className="divide-y divide-navy-50 pt-4">
                   {result.researchSteps.map((step, i) => {
                     const ps = priorityStyles[step.priority] ?? priorityStyles.low
                     return (
                       <li key={i} className="px-6 py-4 flex gap-4 items-start">
-                        <span className="shrink-0 h-6 w-6 rounded-full bg-navy-100 text-navy-600 text-xs font-bold flex items-center justify-center mt-0.5">
+                        <span className="font-cinzel shrink-0 h-7 w-7 rounded-full border-2 border-gold-300 text-gold-600 text-xs font-bold flex items-center justify-center mt-0.5">
                           {i + 1}
                         </span>
                         <div className="flex-1 min-w-0">
@@ -507,7 +538,7 @@ export default function App() {
                               <ResourceIcon />
                               {step.resource}
                             </span>
-                            <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ps.badge}`}>
+                            <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${ps.badge}`}>
                               {ps.label} priority
                             </span>
                           </div>
@@ -522,15 +553,64 @@ export default function App() {
         )}
       </main>
 
-      <footer className="border-t border-navy-100 bg-white mt-auto">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <span className="text-xs text-navy-400">Powered by Claude</span>
-          <span className="text-xs text-navy-300">
-            Analysis is advisory — verify all findings against primary sources
-          </span>
+      {/* ── Footer ── */}
+      <div className="h-0.5 bg-navy-800" />
+      <div className="h-px bg-gold-300" />
+      <div className="h-1 bg-gold-500" />
+      <footer className="bg-white border-t border-navy-100">
+        <div className="max-w-6xl mx-auto px-6 py-5">
+          <OrnamentalRule className="mb-4" />
+          <div className="flex items-center justify-between">
+            <span className="font-cinzel text-xs tracking-widest text-navy-400 uppercase">
+              Powered by Claude
+            </span>
+            <span className="text-xs text-navy-300">
+              Analysis is advisory — verify all findings against primary sources
+            </span>
+          </div>
         </div>
       </footer>
     </div>
+  )
+}
+
+/* ── Decorative components ── */
+
+function OrnamentalRule({ className = '' }: { className?: string }) {
+  return (
+    <div className={`flex items-center gap-3 ${className}`}>
+      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gold-300 to-gold-200" />
+      <svg width="18" height="18" viewBox="0 0 18 18" className="text-gold-500 shrink-0">
+        <polygon points="9,1 17,9 9,17 1,9" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="9" cy="9" r="2" fill="currentColor" />
+      </svg>
+      <div className="flex-1 h-px bg-gradient-to-l from-transparent via-gold-300 to-gold-200" />
+    </div>
+  )
+}
+
+function ArchWatermark() {
+  return (
+    <svg width="600" height="400" viewBox="0 0 600 400" fill="none">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <g key={i} transform={`translate(${i * 120}, 0)`}>
+          <path d={`M10,400 L10,150 Q60,80 110,150 L110,400`} stroke="#1E3E74" strokeWidth="3" fill="none" />
+          <path d={`M20,400 L20,160 Q60,100 100,160 L100,400`} stroke="#1E3E74" strokeWidth="1" fill="none" />
+          <rect x="5" y="370" width="110" height="15" stroke="#1E3E74" strokeWidth="2" fill="none" />
+          <rect x="0" y="385" width="120" height="15" stroke="#1E3E74" strokeWidth="2" fill="none" />
+        </g>
+      ))}
+    </svg>
+  )
+}
+
+function ColumnCapital() {
+  return (
+    <svg width="24" height="8" viewBox="0 0 24 8" className="text-gold-400">
+      <rect x="0" y="0" width="24" height="2" fill="currentColor" />
+      <rect x="3" y="3" width="18" height="1.5" fill="currentColor" opacity="0.6" />
+      <rect x="6" y="5.5" width="12" height="2.5" fill="currentColor" opacity="0.4" />
+    </svg>
   )
 }
 
@@ -539,14 +619,6 @@ function Spinner() {
     <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
-  )
-}
-
-function ArchiveIcon() {
-  return (
-    <svg className="h-4 w-4 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
     </svg>
   )
 }
@@ -569,7 +641,7 @@ function ScrollIcon() {
 
 function CompassIcon() {
   return (
-    <svg className="h-5 w-5 text-gold-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <svg className="h-6 w-6 text-gold-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
     </svg>
   )
