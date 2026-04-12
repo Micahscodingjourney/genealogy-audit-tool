@@ -132,7 +132,7 @@ const steps = [
   {
     number: 'II',
     heading: 'Paste the historical record',
-    body: 'Add the primary source text — census entry, church register, family narrative, plantation record, etc.',
+    body: 'Add the primary source text: a census entry, church register, family narrative, plantation record, or similar document.',
   },
   {
     number: 'III',
@@ -256,7 +256,7 @@ export default function App() {
                 Genealogy Record Auditor
               </h1>
               <p className="mt-3 text-sm text-navy-500 max-w-lg leading-relaxed">
-                AI-assisted analysis of historical genealogical documents — surfaces gaps,
+                AI-assisted analysis of historical genealogical documents. Surfaces gaps,
                 ambiguities, and inconsistencies, then charts a personalized path forward.
               </p>
             </div>
@@ -346,7 +346,7 @@ export default function App() {
                     Your Connection to this Record
                   </p>
                   <p className="text-xs text-gold-700 mt-1 leading-relaxed">
-                    Tell us who you are and what you already know — your name, known relatives, and what you're
+                    Tell us who you are and what you already know: your name, known relatives, and what you're
                     trying to find. The roadmap will be tailored specifically to your family.
                   </p>
                 </div>
@@ -363,8 +363,8 @@ export default function App() {
                 <p className={`mt-2 text-xs flex items-center gap-1.5 ${researcherContext.trim() ? 'text-gold-700' : 'text-gold-500'}`}>
                   <span>{researcherContext.trim() ? '✦' : '◇'}</span>
                   {researcherContext.trim()
-                    ? 'Context provided — roadmap will be tailored to your family.'
-                    : 'Optional but recommended — without this the roadmap will be generic.'}
+                    ? 'Context provided. The roadmap will be tailored to your family.'
+                    : 'Optional but recommended. Without this the roadmap will be generic.'}
                 </p>
               </div>
             </div>
@@ -376,7 +376,7 @@ export default function App() {
                   Historical Record
                 </label>
                 <p className="text-xs text-navy-400 mb-3">
-                  Paste the primary source text — census entry, church register, family narrative, plantation record, etc.
+                  Paste the primary source text you want audited: a census entry, church register, family narrative, or plantation record.
                 </p>
                 <textarea
                   id="record-input"
@@ -565,7 +565,7 @@ export default function App() {
               AI-Assisted Research Tool
             </span>
             <span className="text-xs text-navy-300">
-              Analysis is advisory — verify all findings against primary sources
+              Analysis is advisory. Always verify findings against primary sources.
             </span>
           </div>
         </div>
