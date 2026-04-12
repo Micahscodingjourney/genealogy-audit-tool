@@ -6,6 +6,7 @@ export default {
       fontFamily: {
         serif: ['Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif'],
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        cinzel: ['Cinzel', 'Georgia', 'serif'],
       },
       colors: {
         navy: {
