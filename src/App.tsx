@@ -137,7 +137,7 @@ const steps = [
   {
     number: 'III',
     heading: 'Get a personal roadmap',
-    body: 'Claude audits the record and generates next steps specific to your name, family, and the gaps in the document.',
+    body: 'The record is analyzed and next steps are generated specific to your name, family, and the gaps in the document.',
   },
 ]
 
@@ -562,7 +562,7 @@ export default function App() {
           <OrnamentalRule className="mb-4" />
           <div className="flex items-center justify-between">
             <span className="font-cinzel text-xs tracking-widest text-navy-400 uppercase">
-              Powered by Claude
+              AI-Assisted Research Tool
             </span>
             <span className="text-xs text-navy-300">
               Analysis is advisory — verify all findings against primary sources
