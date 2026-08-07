@@ -1,0 +1,11 @@
+{
+  "name": "family-narrative-lineage-gap",
+  "record": "The Jenkins Family of Prince Edward County — as recorded in a 1958 family history booklet.\n\nAccording to family tradition, 'Big Mama' Jenkins (full name not preserved) was born enslaved sometime before the Civil War and had 'several children,' of whom only two are named in later records: Booker Jenkins and Cornelia Jenkins. Booker Jenkins's descendants are well documented through the 1940 census. Cornelia Jenkins disappears from the record after her 1889 marriage; no descendants have been traced. The booklet states Big Mama Jenkins 'lived to be very old' but gives no birth or death year.",
+  "context": "",
+  "expected": {
+    "missingNames": [{ "mustMention": ["Big Mama"] }],
+    "dateGaps": [{ "mustMention": ["very old"] }],
+    "lineageGaps": [{ "mustMention": ["Cornelia"] }],
+    "incompleteOrContradictory": []
+  }
+}

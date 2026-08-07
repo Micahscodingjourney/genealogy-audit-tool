@@ -1,0 +1,14 @@
+{
+  "name": "adversarial-contradictory-dates",
+  "record": "Sarah Higgins Family Record — Rockingham County, Virginia\n\nSarah Higgins, born 1795 according to her tombstone inscription. Married Thomas Higgins on April 3, 1806, in Rockingham County (per church register), which would have made her approximately 11 years old at the time of marriage. Their eldest son, William Higgins, is recorded in the same church register as born in 1804 — two years before his parents' recorded marriage date. Sarah Higgins died in 1850 at 'age 78' per her death record, though this age is inconsistent with the 1795 tombstone birth year, which would make her 55 at death. No baptismal record survives to confirm either birth year.",
+  "context": "",
+  "expected": {
+    "missingNames": [],
+    "dateGaps": [{ "mustMention": ["1806"] }],
+    "lineageGaps": [],
+    "incompleteOrContradictory": [
+      { "mustMention": ["1804", "1806"] },
+      { "mustMention": ["78", "1795"] }
+    ]
+  }
+}

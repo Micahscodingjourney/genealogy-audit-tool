@@ -91,6 +91,43 @@ The app uses a local Express proxy server so your API key is never embedded in t
 
 ---
 
+## Retrieval & Scoring
+
+Before each audit, the app pulls related entries from a small local reference corpus (`src/corpus/records.json`) and includes them alongside the record you submit, so the model can corroborate or contradict findings against other documents touching the same people, place, and time period.
+
+This is **not** semantic/embedding-based retrieval. It's a structured, weighted proximity score computed from entities the model extracts from your pasted record (people, occupations, locations, years):
+
+- **Geography (40%)** — same county scores highest; same state, lower; different state, zero.
+- **Time period (35%)** — overlap between the extracted record's year range and each corpus record's year range.
+- **Occupation (25%)** — exact match on any named person's occupation.
+
+The top 4 corpus records above a minimum relevance floor are shown in a "Reference Records Consulted" panel with their score breakdown, and passed to the model as additional context. If entity extraction fails for any reason, the audit still runs — retrieval is a best-effort enhancement, not a dependency.
+
+The corpus itself is a small set of illustrative reference abstracts (Freedmen's Bureau records, census entries, church registers, city directories) centered on Albemarle County, VA and Cincinnati, OH — not real archival transcriptions — meant to demonstrate the retrieval mechanism against the built-in Fossett sample record.
+
+Run the scoring unit tests:
+
+```bash
+npm run test
+```
+
+---
+
+## Evaluation
+
+`eval/` contains a small suite of ground-truth cases (`eval/cases/*.json`) that exercise the audit prompt against known, hand-annotated issues — including a clean record (to catch false positives) and an adversarial record with plausible-but-contradictory dates.
+
+Each case lists, per audit category, substrings that a passing result must contain (fuzzy, case-insensitive containment — not exact-string matching, since model phrasing varies run to run).
+
+```bash
+npm run eval            # run all cases
+npm run eval -- --case fossett-monticello   # run one case
+```
+
+The runner reports pass/fail per assertion and an overall pass rate, and exits non-zero if that rate falls below 80%. It calls the Anthropic API directly (using the same `ANTHROPIC_API_KEY` from `.env`) rather than going through the dev server, so it can run standalone in CI or from the command line.
+
+---
+
 ## Works well with
 
 - Federal census records (1850–1940)
@@ -120,6 +157,8 @@ The app uses a local Express proxy server so your API key is never embedded in t
 | Build tool | Vite 6 |
 | Proxy server | Express (Node.js) |
 | AI model | Claude (`claude-sonnet-4-20250514`) via Anthropic API |
+| Unit testing | Vitest |
+| Eval runner | tsx |
 
 ---
 

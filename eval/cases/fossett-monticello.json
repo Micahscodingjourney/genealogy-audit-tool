@@ -1,0 +1,11 @@
+{
+  "name": "fossett-monticello",
+  "record": "Fossett Family — Albemarle County, Virginia (compiled from multiple sources)\n\nJoseph Fossett, b. abt. 1780, enslaved blacksmith at Monticello. Listed in Jefferson's 1826 will as one of five individuals to be freed. Wife: Edith Hern Fossett, b. abt. 1787, also enslaved at Monticello as a cook — trained in France under Jefferson's chef. Edith not freed under the will; fate following 1826 estate sale unclear from surviving records.\n\nChildren documented in Monticello Farm Book (partial):\n  – Peter Fossett, b. 1815, sold at the 1827 estate auction to John R. Jones; later self-purchased freedom, date unknown.\n  – Patsy Fossett, b. abt. 1812, sold 1827, no further record located.\n  – Several additional children referenced in the Farm Book only as \"Edith's children,\" no names given, birth years estimated 1808–1824.\n\n1870 Federal Census, Cincinnati, Ohio: Joseph Fossett [head], mulatto, age 89 [sic — inconsistent with c.1780 birth], listed with a woman named \"E. Fossett,\" age 60, relation not stated. Note: Edith Hern Fossett is recorded as deceased by multiple genealogical sources prior to 1854.\n\nPeter Fossett appears in Cincinnati city directories 1850s–1870s as a caterer. Marriage record: Peter m. [given name not recorded] Vance, Cincinnati, abt. 1840. Children of Peter: at least four, names and birth years unconfirmed.\n\nNo death records located for Joseph or Edith Fossett in Virginia or Ohio. Burial site unknown.",
+  "context": "My name is Micah Fossett. My father is Damirez Fossett. I believe we are descendants of the Fossett family of Monticello, Albemarle County, Virginia — specifically Joseph and Edith Hern Fossett, who were enslaved there in the early 1800s. I am trying to trace the line from Damirez back through the generations to confirm this connection and fill in the missing links between our family today and the historical record.",
+  "expected": {
+    "missingNames": [{ "mustMention": ["Edith's children"] }],
+    "dateGaps": [{ "mustMention": ["89", "1780"] }],
+    "lineageGaps": [{ "mustMention": ["Peter", "children"] }],
+    "incompleteOrContradictory": [{ "mustMention": ["deceased", "1854"] }]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "freedmens-bureau-labor-contract",
+  "record": "Freedmen's Bureau Labor Contract — Albemarle County, Virginia, 1866\n\nContract entered between [name illegible] and the freedman known only as 'Jim,' formerly enslaved on the Carter plantation. Jim agrees to one year's labor for wages of $8/month plus rations. No last name recorded for Jim in this document. A later 1870 census entry for 'James Carter' in the same county may refer to the same individual — occupation listed as farm laborer, age 34, implying a birth year of approximately 1836 — but the connection between Jim and James Carter is unconfirmed. Jim's wife and two children are referenced only as 'his family,' unnamed, and are not itemized separately in the ration allowance.",
+  "context": "",
+  "expected": {
+    "missingNames": [{ "mustMention": ["wife"] }, { "mustMention": ["children"] }],
+    "dateGaps": [{ "mustMention": ["1836"] }],
+    "lineageGaps": [{ "mustMention": ["1870"] }],
+    "incompleteOrContradictory": []
+  }
+}

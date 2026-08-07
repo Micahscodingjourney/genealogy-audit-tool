@@ -1,56 +1,11 @@
 import { useState } from 'react'
+import { SYSTEM_PROMPT, buildUserMessage, extractJson, type AuditResult } from './audit/prompt'
+import { extractEntities } from './retrieval/extract'
+import { rankCorpus, type ScoreBreakdown } from './retrieval/scoring'
+import type { CorpusRecord } from './retrieval/types'
+import corpusData from './corpus/records.json'
 
-interface ResearchStep {
-  action: string
-  resource: string
-  priority: 'high' | 'medium' | 'low'
-}
-
-interface AuditResult {
-  missingNames: string[]
-  dateGaps: string[]
-  lineageGaps: string[]
-  incompleteOrContradictory: string[]
-  summary: string
-  researchSteps: ResearchStep[]
-}
-
-const SYSTEM_PROMPT = `You are an expert genealogical record analyst with deep knowledge of historical records, census documents, vital records, and family histories — including African American genealogy, Freedmen's Bureau records, and plantation records.
-
-The user will provide two things:
-1. RESEARCHER CONTEXT — who they are, their known relatives, what they are trying to find, and any names or locations they already know. Use this to make the research roadmap highly personal and specific to their situation.
-2. HISTORICAL RECORD — the primary source text to analyze.
-
-If researcher context is provided, the researchSteps must:
-- Reference the researcher's own name and known relatives by name where relevant
-- Suggest searches that start from their known living relatives and work backward
-- Prioritize record types most likely to bridge the gap between the known living family and the historical record
-- Name specific counties, states, or cities from the context when suggesting where to search
-
-Analyze the historical record and return ONLY a JSON object with exactly these fields:
-
-{
-  "missingNames": [...],
-  "dateGaps": [...],
-  "lineageGaps": [...],
-  "incompleteOrContradictory": [...],
-  "summary": "...",
-  "researchSteps": [
-    { "action": "...", "resource": "...", "priority": "high" | "medium" | "low" }
-  ]
-}
-
-Field definitions:
-- missingNames: Individuals unnamed, referred to only by relationship ("wife," "son"), or whose identity cannot be confirmed.
-- dateGaps: Missing, approximate (circa, abt., ~), inconsistent, or biologically implausible dates.
-- lineageGaps: Missing generational links, unverified parent-child relationships, or breaks in the documented lineage.
-- incompleteOrContradictory: Facts that conflict with other facts, incomplete entries, or internal contradictions.
-- summary: 1–2 sentence overall assessment of the record's completeness and reliability.
-- researchSteps: Up to 6 specific, actionable next steps. Each step:
-    - action: exactly what to do — name the record type, time period, location, and relevant personal names
-    - resource: best place to find it (FamilySearch.org, Ancestry.com, NARA, Freedmen's Bureau Records on FamilySearch, Monticello Getting Word Project, state vital records office, etc.)
-    - priority: "high" if it directly resolves a named person or date; "medium" for corroborating evidence; "low" for contextual background
-Return ONLY valid JSON — no markdown, no code fences, no preamble.`
+const corpus = corpusData as CorpusRecord[]
 
 const SAMPLE_RECORD = `Fossett Family — Albemarle County, Virginia (compiled from multiple sources)
 
@@ -162,16 +117,13 @@ const priorityStyles = {
   low:    { badge: 'bg-navy-100 text-navy-600', label: 'Low' },
 }
 
-function extractJson(raw: string): string {
-  const match = raw.match(/\{[\s\S]*\}/)
-  return match ? match[0] : raw
-}
-
-function buildUserMessage(context: string, record: string): string {
-  if (context.trim()) {
-    return `[RESEARCHER CONTEXT]\n${context.trim()}\n\n[HISTORICAL RECORD TO ANALYZE]\n${record.trim()}`
-  }
-  return record.trim()
+function formatCorpusBlock(ranked: { record: CorpusRecord; score: ScoreBreakdown }[]): string {
+  if (ranked.length === 0) return ''
+  const lines = ranked.map(({ record, score }, i) => {
+    const breakdown = `geo ${score.geo.toFixed(1)}, time ${score.time.toFixed(1)}, occ ${score.occupation.toFixed(1)}`
+    return `${i + 1}. (score ${score.total.toFixed(2)} — ${breakdown}) ${record.source}: "${record.text}"`
+  })
+  return `[RELATED RECORDS FROM REFERENCE CORPUS — ranked by weighted proximity]\n${lines.join('\n')}`
 }
 
 export default function App() {
@@ -180,12 +132,26 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<AuditResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [retrievedRecords, setRetrievedRecords] = useState<{ record: CorpusRecord; score: ScoreBreakdown }[]>([])
 
   async function handleAudit() {
     if (!inputText.trim()) return
     setIsLoading(true)
     setResult(null)
     setError(null)
+    setRetrievedRecords([])
+
+    // Retrieval is best-effort: if entity extraction fails for any reason,
+    // fall back to the original no-retrieval audit flow rather than blocking.
+    let corpusBlock = ''
+    try {
+      const entities = await extractEntities(inputText)
+      const ranked = rankCorpus(entities, corpus, 4)
+      setRetrievedRecords(ranked)
+      corpusBlock = formatCorpusBlock(ranked)
+    } catch {
+      setRetrievedRecords([])
+    }
 
     try {
       const response = await fetch('/api/messages', {
@@ -195,7 +161,7 @@ export default function App() {
           model: 'claude-sonnet-4-20250514',
           max_tokens: 2048,
           system: SYSTEM_PROMPT,
-          messages: [{ role: 'user', content: buildUserMessage(researcherContext, inputText) }],
+          messages: [{ role: 'user', content: buildUserMessage(researcherContext, inputText, corpusBlock) }],
         }),
       })
 
@@ -434,6 +400,38 @@ export default function App() {
 
             {/* Section ornamental divider */}
             <OrnamentalRule />
+
+            {/* Reference Records Consulted */}
+            {retrievedRecords.length > 0 && (
+              <div className="bg-white rounded-xl shadow-card border border-navy-100 cornice overflow-hidden">
+                <div className="px-6 py-4 bg-navy-50/50 border-b border-navy-100">
+                  <p className="font-cinzel text-xs tracking-widest uppercase text-gold-600">
+                    Reference Records Consulted
+                  </p>
+                  <p className="text-xs text-navy-400 mt-1">
+                    Related entries from the corpus, ranked by weighted proximity (geography, time period, occupation).
+                  </p>
+                </div>
+                <ul className="divide-y divide-navy-50">
+                  {retrievedRecords.map(({ record, score }) => (
+                    <li key={record.id} className="px-6 py-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-sm font-semibold text-navy-800">{record.source}</p>
+                        <span className="shrink-0 font-cinzel text-xs font-bold rounded-full bg-navy-100 text-navy-700 px-2.5 py-0.5">
+                          {score.total.toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-navy-500 mt-1 leading-relaxed">{record.text}</p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <span className="rounded-full bg-gold-50 text-gold-700 px-2 py-0.5 text-xs">geo {score.geo.toFixed(1)}</span>
+                        <span className="rounded-full bg-gold-50 text-gold-700 px-2 py-0.5 text-xs">time {score.time.toFixed(1)}</span>
+                        <span className="rounded-full bg-gold-50 text-gold-700 px-2 py-0.5 text-xs">occupation {score.occupation.toFixed(1)}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Summary */}
             <div className="bg-white rounded-xl shadow-card border border-navy-100 cornice px-6 py-5">

@@ -1,0 +1,11 @@
+{
+  "name": "church-register-partial",
+  "record": "St. John's AME Church Register — Albemarle County, Virginia, 1868–1872\n\nBaptisms recorded: 'infant daughter of Moses and Charity,' baptized March 1868, no given name entered. 'Infant son of Moses and Charity,' baptized September 1870, again no given name entered. Moses and Charity are listed elsewhere in the register as members received into full communion in 1866, surnames not recorded. A separate entry notes the death of 'Charity's mother' in 1869, age given only as 'aged,' no further detail.",
+  "context": "",
+  "expected": {
+    "missingNames": [{ "mustMention": ["infant"] }, { "mustMention": ["surname"] }],
+    "dateGaps": [{ "mustMention": ["aged"] }],
+    "lineageGaps": [{ "mustMention": ["Charity's mother"] }],
+    "incompleteOrContradictory": []
+  }
+}

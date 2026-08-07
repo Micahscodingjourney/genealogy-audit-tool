@@ -1,0 +1,11 @@
+{
+  "name": "clean-vital-record",
+  "record": "John Michael Carter, born March 4, 1902 in Charlottesville, Virginia, son of Thomas Carter and Mary Ann Carter (née Wilson), per birth certificate on file with the Virginia Department of Health. Married Susan Elizabeth Reed on June 12, 1925, in Albemarle County, Virginia (marriage license #4471). Their children, per birth certificates: Robert Thomas Carter (b. April 2, 1926, Charlottesville), Linda Marie Carter (b. October 19, 1928, Charlottesville), and James Wilson Carter (b. January 8, 1931, Charlottesville). John Michael Carter died January 15, 1978, in Charlottesville, Virginia (death certificate #78-0142), and is buried at Riverside Cemetery, Charlottesville. Susan Elizabeth Carter died March 3, 1985, and is buried alongside him.",
+  "context": "",
+  "expected": {
+    "missingNames": [],
+    "dateGaps": [],
+    "lineageGaps": [],
+    "incompleteOrContradictory": []
+  }
+}

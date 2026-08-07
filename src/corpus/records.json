@@ -1,0 +1,244 @@
+[
+  {
+    "id": "fb-001",
+    "source": "Freedmen's Bureau, Albemarle County VA — Labor Contracts, 1866",
+    "recordType": "labor_contract",
+    "people": [
+      { "name": "Peter Fossett", "role": "laborer", "occupation": "blacksmith" }
+    ],
+    "location": { "county": "Albemarle", "state": "VA" },
+    "yearStart": 1866,
+    "yearEnd": 1866,
+    "text": "Illustrative abstract: contract for one year's labor at agreed wages, witnessed by the Bureau agent for the county."
+  },
+  {
+    "id": "farmbook-002",
+    "source": "Monticello Farm Book, Jefferson Estate",
+    "recordType": "farm_book",
+    "people": [
+      { "name": "Joseph Fossett", "role": "self", "occupation": "blacksmith" },
+      { "name": "Edith Hern Fossett", "role": "wife", "occupation": "cook" }
+    ],
+    "location": { "county": "Albemarle", "state": "VA" },
+    "yearStart": 1810,
+    "yearEnd": 1826,
+    "text": "Illustrative abstract: household listing of enslaved individuals with assigned trades and rations, kept for estate management."
+  },
+  {
+    "id": "census-003",
+    "source": "1870 Federal Census, Cincinnati, Hamilton County OH",
+    "recordType": "census",
+    "people": [
+      { "name": "Joseph Fossett", "role": "head", "occupation": "blacksmith" }
+    ],
+    "location": { "county": "Hamilton", "state": "OH" },
+    "yearStart": 1870,
+    "yearEnd": 1870,
+    "text": "Illustrative abstract: household enumeration listing name, age, race, occupation, and place of birth."
+  },
+  {
+    "id": "directory-004",
+    "source": "Williams' Cincinnati Directory",
+    "recordType": "directory",
+    "people": [
+      { "name": "Peter Fossett", "role": "self", "occupation": "caterer" }
+    ],
+    "location": { "county": "Hamilton", "state": "OH" },
+    "yearStart": 1855,
+    "yearEnd": 1870,
+    "text": "Illustrative abstract: annual city directory listing of residents by name, trade, and street address."
+  },
+  {
+    "id": "church-005",
+    "source": "First Baptist Church Register, Cincinnati OH",
+    "recordType": "church",
+    "people": [
+      { "name": "Peter Fossett", "role": "minister", "occupation": "clergy" }
+    ],
+    "location": { "county": "Hamilton", "state": "OH" },
+    "yearStart": 1860,
+    "yearEnd": 1880,
+    "text": "Illustrative abstract: congregation register recording membership, baptisms, and marriages."
+  },
+  {
+    "id": "vital-006",
+    "source": "Ohio Death Index",
+    "recordType": "vital",
+    "people": [
+      { "name": "Peter Fossett", "role": "self" }
+    ],
+    "location": { "county": "Hamilton", "state": "OH" },
+    "yearStart": 1901,
+    "yearEnd": 1901,
+    "text": "Illustrative abstract: statewide index entry recording name, date of death, and county of death."
+  },
+  {
+    "id": "estate-007",
+    "source": "Jefferson Estate Sale Records, Monticello",
+    "recordType": "farm_book",
+    "people": [
+      { "name": "Patsy Fossett", "role": "self" }
+    ],
+    "location": { "county": "Albemarle", "state": "VA" },
+    "yearStart": 1827,
+    "yearEnd": 1827,
+    "text": "Illustrative abstract: auction record listing enslaved individuals sold, purchaser names, and prices."
+  },
+  {
+    "id": "fb-008",
+    "source": "Freedmen's Bureau, Hamilton County OH — Marriage Registers, 1865",
+    "recordType": "labor_contract",
+    "people": [
+      { "name": "Peter Fossett", "role": "self", "occupation": "caterer" }
+    ],
+    "location": { "county": "Hamilton", "state": "OH" },
+    "yearStart": 1865,
+    "yearEnd": 1865,
+    "text": "Illustrative abstract: register of marriages solemnized or ratified before a Bureau agent."
+  },
+  {
+    "id": "census-009",
+    "source": "1850 Federal Census, Albemarle County VA",
+    "recordType": "census",
+    "people": [
+      { "name": "unnamed household", "role": "enslaved", "occupation": "farm laborer" }
+    ],
+    "location": { "county": "Albemarle", "state": "VA" },
+    "yearStart": 1850,
+    "yearEnd": 1850,
+    "text": "Illustrative abstract: slave schedule listing age, sex, and color, without given names."
+  },
+  {
+    "id": "farmbook-010",
+    "source": "Monticello Farm Book — Children's Roll",
+    "recordType": "farm_book",
+    "people": [
+      { "name": "unnamed children of Edith Fossett", "role": "child" }
+    ],
+    "location": { "county": "Albemarle", "state": "VA" },
+    "yearStart": 1808,
+    "yearEnd": 1824,
+    "text": "Illustrative abstract: partial roll of children born to enslaved women on the plantation, recorded by mother's name only."
+  },
+  {
+    "id": "directory-011",
+    "source": "Cincinnati Business Directory",
+    "recordType": "directory",
+    "people": [
+      { "name": "Peter Fossett", "role": "proprietor", "occupation": "caterer" }
+    ],
+    "location": { "county": "Hamilton", "state": "OH" },
+    "yearStart": 1875,
+    "yearEnd": 1880,
+    "text": "Illustrative abstract: trade listing of Cincinnati businesses by owner name and category."
+  },
+  {
+    "id": "getting-word-012",
+    "source": "Monticello's Getting Word Oral History Project",
+    "recordType": "vital",
+    "people": [
+      { "name": "descendants of Joseph and Edith Fossett", "role": "family" }
+    ],
+    "location": { "county": "Albemarle", "state": "VA" },
+    "yearStart": 1780,
+    "yearEnd": 1990,
+    "text": "Illustrative abstract: recorded oral histories from descendants of Monticello's enslaved community, cross-referenced to plantation records."
+  },
+  {
+    "id": "church-013",
+    "source": "St. John's AME Church Register, Albemarle County VA",
+    "recordType": "church",
+    "people": [
+      { "name": "Fossett family members", "role": "congregant" }
+    ],
+    "location": { "county": "Albemarle", "state": "VA" },
+    "yearStart": 1866,
+    "yearEnd": 1890,
+    "text": "Illustrative abstract: postbellum congregation register recording formerly enslaved families as free members."
+  },
+  {
+    "id": "census-014",
+    "source": "1880 Federal Census, Hamilton County OH",
+    "recordType": "census",
+    "people": [
+      { "name": "Peter Fossett", "role": "head", "occupation": "clergyman" }
+    ],
+    "location": { "county": "Hamilton", "state": "OH" },
+    "yearStart": 1880,
+    "yearEnd": 1880,
+    "text": "Illustrative abstract: household enumeration listing occupation as clergyman alongside caterer trade."
+  },
+  {
+    "id": "farmbook-015",
+    "source": "Monticello Farm Book — Rations Ledger",
+    "recordType": "farm_book",
+    "people": [
+      { "name": "Edith Hern Fossett", "role": "self", "occupation": "cook" }
+    ],
+    "location": { "county": "Albemarle", "state": "VA" },
+    "yearStart": 1809,
+    "yearEnd": 1809,
+    "text": "Illustrative abstract: ledger noting training sent to France to learn French cookery under the household chef."
+  },
+  {
+    "id": "vital-016",
+    "source": "Virginia Slave Birth Index (reconstructed)",
+    "recordType": "vital",
+    "people": [
+      { "name": "unnamed infant, mother Edith Fossett", "role": "child" }
+    ],
+    "location": { "county": "Albemarle", "state": "VA" },
+    "yearStart": 1812,
+    "yearEnd": 1812,
+    "text": "Illustrative abstract: reconstructed birth entry compiled from plantation ledgers, no surname or given name recorded."
+  },
+  {
+    "id": "directory-017",
+    "source": "Cincinnati City Directory — Colored Residents Supplement",
+    "recordType": "directory",
+    "people": [
+      { "name": "Fossett household", "role": "residents" }
+    ],
+    "location": { "county": "Hamilton", "state": "OH" },
+    "yearStart": 1860,
+    "yearEnd": 1865,
+    "text": "Illustrative abstract: supplemental listing of Black residents by street, common in mid-century Ohio directories."
+  },
+  {
+    "id": "estate-018",
+    "source": "Albemarle County Estate Appraisal",
+    "recordType": "farm_book",
+    "people": [
+      { "name": "enslaved individuals of the Jefferson estate", "role": "property" }
+    ],
+    "location": { "county": "Albemarle", "state": "VA" },
+    "yearStart": 1826,
+    "yearEnd": 1826,
+    "text": "Illustrative abstract: appraisal of estate property, including enslaved individuals listed by first name and estimated value."
+  },
+  {
+    "id": "vital-019",
+    "source": "Ohio Marriage Records",
+    "recordType": "vital",
+    "people": [
+      { "name": "Peter Fossett", "role": "groom" },
+      { "name": "Vance (given name not recorded)", "role": "bride" }
+    ],
+    "location": { "county": "Hamilton", "state": "OH" },
+    "yearStart": 1840,
+    "yearEnd": 1840,
+    "text": "Illustrative abstract: county marriage register entry, bride's given name illegible or omitted."
+  },
+  {
+    "id": "census-020",
+    "source": "1860 Federal Census, Hamilton County OH",
+    "recordType": "census",
+    "people": [
+      { "name": "Peter Fossett", "role": "head", "occupation": "caterer" }
+    ],
+    "location": { "county": "Hamilton", "state": "OH" },
+    "yearStart": 1860,
+    "yearEnd": 1860,
+    "text": "Illustrative abstract: household enumeration listing real estate value alongside occupation."
+  }
+]
