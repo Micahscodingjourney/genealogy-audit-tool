@@ -1,5 +1,5 @@
 import type { ExtractedEntities } from './extract'
-import type { CorpusRecord } from './types'
+import type { CorpusRecord, CorpusPerson } from './types'
 
 export interface ScoreBreakdown {
   geo: number // 0..1
@@ -43,15 +43,83 @@ export const WEIGHTS = { geo: 0.4, time: 0.35, occupation: 0.25 }
  *
  * total = WEIGHTS.geo * geo + WEIGHTS.time * time + WEIGHTS.occupation * occupation
  *
- * TODO(Micah): implement this function's body per the spec above.
  */
 export function scoreRecord(
   entities: ExtractedEntities,
   record: CorpusRecord,
 ): ScoreBreakdown {
-  void entities
-  void record
-  throw new Error('scoreRecord() not implemented yet — see JSDoc above and src/retrieval/scoring.test.ts')
+  const geo = scoreGeo(entities.locations, record.location)
+  const time = scoreTime(entities.yearStart, entities.yearEnd, record.yearStart, record.yearEnd)
+  const occupation = scoreOccupation(entities.people, record.people)
+  const total = WEIGHTS.geo * geo + WEIGHTS.time * time + WEIGHTS.occupation * occupation
+  return { geo, time, occupation, total }
+}
+
+function isEmptyLocation(loc: { county?: string; state?: string }): boolean {
+  return !loc.county?.trim() && !loc.state?.trim()
+}
+
+function scoreGeoPair(
+  loc: { county?: string; state?: string },
+  record: { county?: string; state?: string },
+): number {
+  if (isEmptyLocation(loc) || isEmptyLocation(record)) return 0.3
+
+  const county = loc.county?.trim().toLowerCase()
+  const recordCounty = record.county?.trim().toLowerCase()
+  if (county && recordCounty && county === recordCounty) return 1.0
+
+  const state = loc.state?.trim().toLowerCase()
+  const recordState = record.state?.trim().toLowerCase()
+  if (state && recordState && state === recordState) return 0.6
+
+  return 0.0
+}
+
+function scoreGeo(
+  locations: { county?: string; state?: string }[],
+  recordLocation: { county?: string; state?: string },
+): number {
+  if (locations.length === 0) return 0.3
+  return Math.max(...locations.map((loc) => scoreGeoPair(loc, recordLocation)))
+}
+
+function scoreTime(
+  entityStart: number | undefined,
+  entityEnd: number | undefined,
+  recordStart: number,
+  recordEnd: number,
+): number {
+  if (entityStart === undefined || entityEnd === undefined) return 0.3
+
+  const overlapStart = Math.max(entityStart, recordStart)
+  const overlapEnd = Math.min(entityEnd, recordEnd)
+  if (overlapEnd < overlapStart) return 0
+
+  const overlapLength = overlapEnd - overlapStart
+  const shorterLength = Math.min(entityEnd - entityStart, recordEnd - recordStart)
+
+  // Ranges intersect but the shorter range is a single point (start === end) —
+  // dividing by zero would be wrong; the point falling in range means full overlap.
+  if (shorterLength === 0) return 1.0
+
+  return Math.min(1, Math.max(0, overlapLength / shorterLength))
+}
+
+function scoreOccupation(
+  entityPeople: { name: string; occupation?: string }[],
+  recordPeople: CorpusPerson[],
+): number {
+  const entityOccupations = entityPeople
+    .map((p) => p.occupation?.trim().toLowerCase())
+    .filter((o): o is string => Boolean(o))
+  const recordOccupations = recordPeople
+    .map((p) => p.occupation?.trim().toLowerCase())
+    .filter((o): o is string => Boolean(o))
+
+  if (entityOccupations.length === 0 && recordOccupations.length === 0) return 0.3
+  if (entityOccupations.some((o) => recordOccupations.includes(o))) return 1.0
+  return 0.0
 }
 
 /**

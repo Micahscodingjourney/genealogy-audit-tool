@@ -158,7 +158,7 @@ export default function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-5',
           max_tokens: 2048,
           system: SYSTEM_PROMPT,
           messages: [{ role: 'user', content: buildUserMessage(researcherContext, inputText, corpusBlock) }],

@@ -156,7 +156,7 @@ The runner reports pass/fail per assertion and an overall pass rate, and exits n
 | Styling | Tailwind CSS 3 |
 | Build tool | Vite 6 |
 | Proxy server | Express (Node.js) |
-| AI model | Claude (`claude-sonnet-4-20250514`) via Anthropic API |
+| AI model | Claude (`claude-sonnet-5`) via Anthropic API |
 | Unit testing | Vitest |
 | Eval runner | tsx |
 

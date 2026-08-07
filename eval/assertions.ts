@@ -37,10 +37,13 @@ export interface EvalCase {
  * An empty mustMention array is vacuously true for any results (including
  * empty results) since there is nothing to require.
  *
- * TODO(Micah): implement this function's body per the JSDoc above.
  */
 export function matchesMustMention(results: string[], item: EvalExpectedItem): boolean {
-  void results
-  void item
-  throw new Error('matchesMustMention() not implemented yet — see JSDoc above and eval/assertions.test.ts')
+  if (item.mustMention.length === 0) return true
+
+  const needles = item.mustMention.map((s) => s.toLowerCase())
+  return results.some((result) => {
+    const haystack = result.toLowerCase()
+    return needles.every((needle) => haystack.includes(needle))
+  })
 }
