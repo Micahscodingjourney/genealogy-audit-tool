@@ -15,7 +15,8 @@ export const WEIGHTS = { geo: 0.4, time: 0.35, occupation: 0.25 }
  * from the user's pasted record, across three weighted dimensions.
  *
  * geo (weight 0.4):
- *   - same county (case-insensitive, trimmed)        -> 1.0
+ *   - same county (case-insensitive, trimmed, "County"/"Parish" suffix and
+ *     full state name vs. postal abbreviation ignored)  -> 1.0
  *   - same state, different or unknown county          -> 0.6
  *   - different state                                    -> 0.0
  *   - either side has no location info at all            -> 0.3 (uncertainty, not zero)
@@ -59,18 +60,43 @@ function isEmptyLocation(loc: { county?: string; state?: string }): boolean {
   return !loc.county?.trim() && !loc.state?.trim()
 }
 
+// Entity extraction is an LLM call, not a fixed schema — it may return
+// "Albemarle County" where the corpus has "Albemarle", or "Virginia" where
+// the corpus has "VA". Normalize both sides before comparing so genuine
+// matches don't silently score as mismatches.
+const STATE_ABBREVIATIONS: Record<string, string> = {
+  virginia: 'va', ohio: 'oh', 'west virginia': 'wv', maryland: 'md',
+  pennsylvania: 'pa', kentucky: 'ky', tennessee: 'tn', 'north carolina': 'nc',
+  'south carolina': 'sc', georgia: 'ga', alabama: 'al', mississippi: 'ms',
+  louisiana: 'la', texas: 'tx', arkansas: 'ar', missouri: 'mo',
+  illinois: 'il', indiana: 'in', michigan: 'mi', wisconsin: 'wi',
+  florida: 'fl', 'new york': 'ny', 'new jersey': 'nj', delaware: 'de',
+}
+
+function normalizeCounty(county?: string): string | undefined {
+  const c = county?.trim().toLowerCase()
+  if (!c) return undefined
+  return c.replace(/\s+(county|parish)$/, '').trim()
+}
+
+function normalizeState(state?: string): string | undefined {
+  const s = state?.trim().toLowerCase()
+  if (!s) return undefined
+  return STATE_ABBREVIATIONS[s] ?? s
+}
+
 function scoreGeoPair(
   loc: { county?: string; state?: string },
   record: { county?: string; state?: string },
 ): number {
   if (isEmptyLocation(loc) || isEmptyLocation(record)) return 0.3
 
-  const county = loc.county?.trim().toLowerCase()
-  const recordCounty = record.county?.trim().toLowerCase()
+  const county = normalizeCounty(loc.county)
+  const recordCounty = normalizeCounty(record.county)
   if (county && recordCounty && county === recordCounty) return 1.0
 
-  const state = loc.state?.trim().toLowerCase()
-  const recordState = record.state?.trim().toLowerCase()
+  const state = normalizeState(loc.state)
+  const recordState = normalizeState(record.state)
   if (state && recordState && state === recordState) return 0.6
 
   return 0.0

@@ -32,7 +32,8 @@ async function runAudit(evalCase: EvalCase): Promise<AuditResult> {
     },
     body: JSON.stringify({
       model: 'claude-sonnet-5',
-      max_tokens: 2048,
+      max_tokens: 4096,
+      thinking: { type: 'disabled' },
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: buildUserMessage(evalCase.context, evalCase.record) }],
     }),

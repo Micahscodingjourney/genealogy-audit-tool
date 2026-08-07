@@ -159,7 +159,8 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-5',
-          max_tokens: 2048,
+          max_tokens: 4096,
+          thinking: { type: 'disabled' },
           system: SYSTEM_PROMPT,
           messages: [{ role: 'user', content: buildUserMessage(researcherContext, inputText, corpusBlock) }],
         }),

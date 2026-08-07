@@ -52,6 +52,20 @@ describe('scoreRecord — geo dimension', () => {
     expect(scoreRecord(entities, record).geo).toBe(0.0)
   })
 
+  it('scores 1.0 for a county match despite a "County" suffix and full state name', () => {
+    // Real-world case: entity extraction returns "Albemarle County" / "Virginia";
+    // the corpus stores "Albemarle" / "VA". These should still match on county.
+    const entities = makeEntities({ locations: [{ county: 'Albemarle County', state: 'Virginia' }] })
+    const record = makeRecord({ location: { county: 'Albemarle', state: 'VA' } })
+    expect(scoreRecord(entities, record).geo).toBe(1.0)
+  })
+
+  it('scores 0.6 for a state match using the full state name vs. postal abbreviation', () => {
+    const entities = makeEntities({ locations: [{ county: 'Fluvanna County', state: 'Virginia' }] })
+    const record = makeRecord({ location: { county: 'Albemarle', state: 'VA' } })
+    expect(scoreRecord(entities, record).geo).toBe(0.6)
+  })
+
   it('scores 0.3 when location info is missing on either side', () => {
     const entities = makeEntities({ locations: [] })
     const record = makeRecord()

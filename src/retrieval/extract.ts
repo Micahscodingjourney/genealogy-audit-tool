@@ -32,6 +32,7 @@ export async function extractEntities(recordText: string): Promise<ExtractedEnti
     body: JSON.stringify({
       model: 'claude-sonnet-5',
       max_tokens: 1024,
+      thinking: { type: 'disabled' },
       system: EXTRACTION_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: recordText.trim() }],
     }),
